@@ -73,6 +73,39 @@ export type ShopifyProduct = {
   variants: Connection<ProductVariant>;
   featuredImage: Image;
 };
+export type ProductsResult = {
+  products: Product[];
+  next: boolean;
+  prev: boolean;
+  end: string | null;
+  start: string | null;
+};
+export type ProductFilter =
+  | { available: boolean }
+  | { price: { min?: number; max?: number } }
+  | { productType: string }
+  | { productVendor: string }
+  | { tag: string }
+  | {
+      productMetafield: {
+        namespace: string;
+        key: string;
+        value: string;
+      };
+    }
+  | {
+      variantMetafield: {
+        namespace: string;
+        key: string;
+        value: string;
+      };
+    }
+  | {
+      variantOption: {
+        name: string;
+        value: string;
+      };
+    };
 
 export type Menu = {
   title: string;

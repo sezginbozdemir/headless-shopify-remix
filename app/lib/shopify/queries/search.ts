@@ -1,23 +1,26 @@
 import { productFragment } from "../fragments/product";
 
-export const getProductsQuery = /* GraphQL */ `
-  query AllProducts(
-    $sortKey: ProductSortKeys
+export const searchProductsQuery = /* GraphQL */ `
+  query SearchProducts(
+    $sortKey: SearchSortKeys
     $first: Int
     $last: Int
-    $query: String
     $after: String
     $before: String
+    $filters: [ProductFilter!]
+    $query: String!
     $reverse: Boolean
   ) {
-    products(
-      reverse: $reverse
+    search(
       sortKey: $sortKey
       first: $first
       last: $last
       query: $query
       after: $after
       before: $before
+      types: [PRODUCT]
+      productFilters: $filters
+      reverse: $reverse
     ) {
       pageInfo {
         hasNextPage

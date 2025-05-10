@@ -4,17 +4,21 @@ import {
   type LoaderFunction,
   type MetaFunction,
 } from "@remix-run/node";
-import { getProducts } from "@/lib/shopify";
+import { getProductMeta, getCollectionProducts } from "@/lib/shopify";
 import { useLoaderData } from "@remix-run/react";
-import { Product } from "@/lib/shopify/types";
+import { ProductsResult } from "@/lib/shopify/types";
 import { ProductGrid } from "@/components/product/product-grid";
 import { PaginationBar } from "@/components/pagination-bar";
 import { Spacing } from "@/components/spacing";
-const PRODUCTS_PER_PAGE = 8;
+import { ProductFilters } from "@/components/product/product-filters";
+import { parseFilters } from "@/lib/utils";
+import { ProductToolbar } from "@/components/product/product-toolbar";
+import { useState } from "react";
 type LoaderData = {
-  products: Product[];
-  totalPages: number;
-  currentPage: number;
+  brands: string[];
+  options: Record<string, string[]>;
+  types: string[];
+  collectionProducts: ProductsResult;
 };
 export const meta: MetaFunction = () => {
   return [
@@ -26,29 +30,60 @@ export const loader: LoaderFunction = async ({
   request,
 }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
-  const pageParam = url.searchParams.get("page");
-  const page = Math.max(1, parseInt(pageParam || "1"));
-  const products = await getProducts();
-  const start = (page - 1) * PRODUCTS_PER_PAGE;
-  const end = start + PRODUCTS_PER_PAGE;
-  const paginatedProducts = products.slice(start, end);
+  const { brands, types, options } = await getProductMeta();
+  const filters = parseFilters(url, options);
+  const after = url.searchParams.get("after") ?? undefined;
+  const before = url.searchParams.get("before") ?? undefined;
+  const collectionProducts = await getCollectionProducts({
+    collection: "all-products",
+    filters: filters,
+    sortKey: "TITLE",
+    after: after,
+    before: before,
+    reverse: true,
+  });
 
   return data<LoaderData>({
-    products: paginatedProducts,
-    currentPage: page,
-    totalPages: Math.ceil(products.length / PRODUCTS_PER_PAGE),
+    collectionProducts,
+    brands,
+    options,
+    types,
   });
 };
 
 export default function ProductsPage() {
-  const { products, totalPages, currentPage } = useLoaderData<LoaderData>();
-  console.log(products);
+  const { types, collectionProducts, brands, options } =
+    useLoaderData<LoaderData>();
+  const products = collectionProducts.products;
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [sortKey, setSortKey] = useState("TITLE");
 
   return (
     <>
-      <ProductGrid products={products} />
-      <Spacing />
-      <PaginationBar totalPages={totalPages} currentPage={currentPage} />
+      <ProductToolbar
+        filtersOpen={filtersOpen}
+        onToggleFilters={() => setFiltersOpen(!filtersOpen)}
+        sortValue={sortKey}
+        onSortChange={(value) => setSortKey(value)}
+      />
+      <div className="flex">
+        {filtersOpen && (
+          <>
+            <Spacing direction="horizontal" size={1} />
+            <ProductFilters types={types} options={options} brands={brands} />
+          </>
+        )}
+        <Spacing direction="horizontal" size={3} />
+        <ProductGrid products={products} />
+        <Spacing direction="horizontal" size={1} />
+      </div>
+      <Spacing size={2} />
+      <PaginationBar
+        next={collectionProducts.next}
+        prev={collectionProducts.prev}
+        end={collectionProducts.end}
+        start={collectionProducts.start}
+      />
     </>
   );
 }

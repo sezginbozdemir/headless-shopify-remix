@@ -1,7 +1,6 @@
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -10,72 +9,57 @@ import {
 import { useSearchParams } from "@remix-run/react";
 
 type PaginationBarProps = {
-  currentPage: number;
-  totalPages: number;
+  next: boolean | undefined;
+  prev: boolean | undefined;
+  end: string | null;
+  start: string | null;
 };
 
-export function PaginationBar({ currentPage, totalPages }: PaginationBarProps) {
+export function PaginationBar({ next, prev, end, start }: PaginationBarProps) {
   const [searchParams] = useSearchParams();
-  const getPageLink = (page: number) => {
+  const pageParam = searchParams.get("page");
+  const currentPage = Math.max(1, parseInt(pageParam || "1"));
+
+  const getCursorPageLink = ({
+    page,
+    after,
+    before,
+  }: {
+    page: number;
+    after?: string | null;
+    before?: string | null;
+  }) => {
     const params = new URLSearchParams(searchParams);
+    if (after) {
+      params.set("after", after);
+      params.delete("before");
+    } else if (before) {
+      params.set("before", before);
+      params.delete("after");
+    }
     params.set("page", String(page));
     return `?${params.toString()}`;
   };
   return (
     <Pagination className="w-full">
       <PaginationContent>
-        {currentPage > 1 && (
+        {prev && (
           <PaginationItem>
-            <PaginationPrevious href={getPageLink(currentPage - 1)} />
+            <PaginationPrevious
+              href={getCursorPageLink({ page: currentPage - 1, before: start })}
+            />
           </PaginationItem>
         )}
 
         <PaginationItem>
-          <PaginationLink href={getPageLink(1)} isActive={currentPage === 1}>
-            1
-          </PaginationLink>
+          <PaginationLink>{currentPage}</PaginationLink>
         </PaginationItem>
 
-        {currentPage > 4 && (
+        {next && (
           <PaginationItem>
-            <PaginationEllipsis />
-          </PaginationItem>
-        )}
-
-        {Array.from({ length: totalPages }, (_, i) => i + 1)
-          .filter((page) => page > 1 && page < totalPages)
-          .filter((page) => Math.abs(page - currentPage) <= 1)
-          .map((page) => (
-            <PaginationItem key={page}>
-              <PaginationLink
-                href={getPageLink(page)}
-                isActive={page === currentPage}
-              >
-                {page}
-              </PaginationLink>
-            </PaginationItem>
-          ))}
-
-        {currentPage < totalPages - 3 && (
-          <PaginationItem>
-            <PaginationEllipsis />
-          </PaginationItem>
-        )}
-
-        {totalPages > 1 && (
-          <PaginationItem>
-            <PaginationLink
-              href={getPageLink(totalPages)}
-              isActive={currentPage === totalPages}
-            >
-              {totalPages}
-            </PaginationLink>
-          </PaginationItem>
-        )}
-
-        {currentPage < totalPages && (
-          <PaginationItem>
-            <PaginationNext href={getPageLink(currentPage + 1)} />
+            <PaginationNext
+              href={getCursorPageLink({ page: currentPage + 1, after: end })}
+            />
           </PaginationItem>
         )}
       </PaginationContent>

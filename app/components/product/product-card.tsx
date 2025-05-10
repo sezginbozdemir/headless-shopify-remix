@@ -1,32 +1,10 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Product } from "@/lib/shopify/types";
+import { getSaleInfo } from "@/lib/shopify/utils";
 
 type ProductCardProps = {
   product: Product;
 };
-
-function getSaleInfo(product: Product) {
-  let maxDiscount = 0;
-  const isOnSale = product.variants.some((variant) => {
-    const price = Number(variant.price.amount);
-    const compareAt = variant.compareAtPrice?.amount
-      ? Number(variant.compareAtPrice.amount)
-      : null;
-
-    if (compareAt !== null && compareAt > price) {
-      const discount = ((compareAt - price) / compareAt) * 100;
-      if (discount > maxDiscount) maxDiscount = discount;
-      return true;
-    }
-
-    return false;
-  });
-
-  return {
-    isOnSale,
-    discount: isOnSale ? Math.round(maxDiscount) : 0,
-  };
-}
 
 export function ProductCard({ product }: ProductCardProps) {
   const primaryImage = product.images[0]?.url;
@@ -34,10 +12,14 @@ export function ProductCard({ product }: ProductCardProps) {
   const oldPrice = product.variants[0]?.compareAtPrice?.amount;
   const isoDate = product.createdAt;
   const date = new Date(isoDate);
-  const readableDate = date.toLocaleDateString();
+  const readableDate = date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
   const { isOnSale, discount } = getSaleInfo(product);
   return (
-    <Card className="rounded-[20px] h-[28rem] flex flex-col justify-between">
+    <Card className="rounded-[20px] h-[25rem] flex flex-col justify-center">
       <CardHeader className="overflow-hidden p-[3rem]">
         <img
           src={primaryImage}

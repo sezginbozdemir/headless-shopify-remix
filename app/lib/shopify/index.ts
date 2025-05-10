@@ -8,6 +8,8 @@ import {
   ShopifyCart,
   Page,
   ShopifyProduct,
+  ProductsResult,
+  ProductFilter,
 } from "./types";
 import {
   getCollectionProductsQuery,
@@ -23,23 +25,38 @@ import {
 import { cartIdCookie } from "../cookies";
 import { getCartQuery } from "./queries/cart";
 import { getPageQuery, getPagesQuery } from "./queries/page";
+import { searchProductsQuery } from "./queries/search";
+import { extractUniqueOptions } from "../utils";
+import { getProductMetaQuery } from "./queries/metadata";
 const client = getClient();
 
 type ProductVariables = {
-  first: number;
-  filters?: string;
+  reverse?: boolean;
+  first?: number;
+  last?: number;
+  query?: string;
+  filters?: ProductFilter[];
   after?: string;
+  before?: string;
   sortKey?: string;
+  handle?: string;
 };
 
 interface ProductsProps {
-  filters?: string;
+  query?: string;
   sortKey?: string;
+  after?: string;
+  before?: string;
+  filters?: ProductFilter[];
+  reverse?: boolean;
 }
 interface CollectionProductsProps {
-  filters?: string;
+  after?: string;
+  before?: string;
   sortKey?: string;
   collection: string;
+  filters?: ProductFilter[];
+  reverse?: boolean;
 }
 
 const removeEdgesAndNodes = <T>(array: Connection<T>): T[] => {
@@ -71,37 +88,115 @@ const reshapeProducts = (products: ShopifyProduct[]) => {
   return reshapedProducts;
 };
 
-export async function getProducts({
-  filters,
+export async function getSearchProducts({
   sortKey,
-}: ProductsProps = {}): Promise<Product[]> {
-  const allProducts: Product[] = [];
-  let hasNextPage = true;
-  let endCursor: string | null = null;
-
+  after,
+  before,
+  filters,
+  query,
+  reverse,
+}: ProductsProps = {}): Promise<ProductsResult> {
   try {
-    while (hasNextPage) {
-      const variables: ProductVariables = { first: 250, filters, sortKey };
-      if (endCursor) variables.after = endCursor;
-
-      const response = await client.request(getProductsQuery, {
-        variables,
-      });
-
-      const products: Product[] = reshapeProducts(
-        removeEdgesAndNodes(response.data.products)
-      );
-      allProducts.push(...products);
-
-      hasNextPage = response.data.products.pageInfo.hasNextPage;
-      endCursor = response.data.products.pageInfo.endCursor;
+    let variables: ProductVariables = { reverse, sortKey, filters, query };
+    if (after) {
+      variables = { ...variables, first: 16, after };
+    } else if (before) {
+      variables = { ...variables, last: 16, before };
+    } else {
+      variables = { ...variables, first: 16 };
     }
+    const response = await client.request(searchProductsQuery, {
+      variables,
+    });
+    const products: Product[] = reshapeProducts(
+      removeEdgesAndNodes(response.data.search)
+    );
+
+    const next = response.data.search.pageInfo.hasNextPage;
+    const prev = response.data.search.pageInfo.hasPreviousPage;
+    const end = response.data.search.pageInfo.endCursor;
+    const start = response.data.search.pageInfo.startCursor;
+    return { next, prev, end, products, start };
   } catch (err) {
     console.error("Error fetching products:", err);
     throw new Error("Unable to fetch products.");
   }
+}
+export async function getProductMeta(): Promise<{
+  brands: string[];
+  types: string[];
+  options: Record<string, string[]>;
+}> {
+  try {
+    const allProducts: Product[] = [];
+    let hasNextPage = true;
+    let after: string | undefined = undefined;
 
-  return allProducts;
+    while (hasNextPage) {
+      const variables: ProductVariables = {
+        after,
+      };
+
+      const response = await client.request(getProductMetaQuery, { variables });
+      const productsBatch: Product[] = removeEdgesAndNodes(
+        response.data.products
+      );
+      allProducts.push(...productsBatch);
+
+      const pageInfo = response.data.products.pageInfo;
+      hasNextPage = pageInfo.hasNextPage;
+      after = pageInfo.endCursor;
+    }
+    const brandsSet = new Set<string>();
+    const typesSet = new Set<string>();
+
+    for (const product of allProducts) {
+      if (product.vendor) brandsSet.add(product.vendor);
+      if (product.productType) typesSet.add(product.productType);
+    }
+
+    return {
+      brands: Array.from(brandsSet).sort(),
+      types: Array.from(typesSet).sort(),
+      options: extractUniqueOptions(allProducts),
+    };
+  } catch (err) {
+    console.error("Error fetching options:", err);
+    throw new Error("Unable to fetch all options.");
+  }
+}
+export async function getProducts({
+  query,
+  sortKey,
+  after,
+  before,
+  reverse,
+}: ProductsProps = {}): Promise<ProductsResult> {
+  try {
+    let variables: ProductVariables = { reverse, query, sortKey };
+    if (after) {
+      variables = { ...variables, first: 16, after };
+    } else if (before) {
+      variables = { ...variables, last: 16, before };
+    } else {
+      variables = { ...variables, first: 16 };
+    }
+    const response = await client.request(getProductsQuery, {
+      variables,
+    });
+    const products: Product[] = reshapeProducts(
+      removeEdgesAndNodes(response.data.products)
+    );
+
+    const next = response.data.products.pageInfo.hasNextPage;
+    const prev = response.data.products.pageInfo.hasPreviousPage;
+    const end = response.data.products.pageInfo.endCursor;
+    const start = response.data.products.pageInfo.startCursor;
+    return { next, prev, end, products, start };
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    throw new Error("Unable to fetch products.");
+  }
 }
 
 export async function getCollections(): Promise<Collection[]> {
@@ -118,20 +213,37 @@ export async function getCollections(): Promise<Collection[]> {
 export async function getCollectionProducts({
   collection,
   sortKey,
-}: CollectionProductsProps): Promise<Product[]> {
+  filters,
+  after,
+  before,
+  reverse,
+}: CollectionProductsProps): Promise<ProductsResult> {
   try {
-    const variables = {
+    let variables: ProductVariables = {
       sortKey,
       handle: collection,
+      filters: filters,
+      reverse,
     };
+    if (after) {
+      variables = { ...variables, first: 16, after };
+    } else if (before) {
+      variables = { ...variables, last: 16, before };
+    } else {
+      variables = { ...variables, first: 16 };
+    }
 
     const response = await client.request(getCollectionProductsQuery, {
       variables,
     });
-    const products: Product[] = removeEdgesAndNodes(
-      response.data.collection.products
+    const products: Product[] = reshapeProducts(
+      removeEdgesAndNodes(response.data.collection.products)
     );
-    return products;
+    const next = response.data.collection.products.pageInfo.hasNextPage;
+    const prev = response.data.collection.products.pageInfo.hasPreviousPage;
+    const end = response.data.collection.products.pageInfo.endCursor;
+    const start = response.data.collection.products.pageInfo.startCursor;
+    return { next, prev, end, products, start };
   } catch (err) {
     console.error("Error fetching products:", err);
     throw new Error("Unable to fetch products.");
