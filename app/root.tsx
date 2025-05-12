@@ -1,15 +1,18 @@
 import {
   data,
+  isRouteErrorResponse,
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useRouteError,
 } from "@remix-run/react";
 import type { LinksFunction, LoaderFunction } from "@remix-run/node";
 
 import "./tailwind.css";
+import { Container } from "./components/ui/container";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -35,6 +38,7 @@ export const loader: LoaderFunction = async () => {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const data = useLoaderData<typeof loader>();
+  const ENV = data?.ENV ?? {};
   return (
     <html lang="en">
       <head>
@@ -44,11 +48,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <Container>{children}</Container>
         <ScrollRestoration />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
+            __html: `window.ENV = ${JSON.stringify(ENV)}`,
           }}
         />
         <Scripts />
@@ -57,6 +61,36 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  return (
+    <html lang="en">
+      <head>
+        <title>Error!</title>
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <ScrollRestoration />
+
+        <h1>Something went wrong</h1>
+
+        {isRouteErrorResponse(error) ? (
+          <p>
+            {error.status} {error.statusText}
+          </p>
+        ) : error instanceof Error ? (
+          <pre>{error.message}</pre>
+        ) : (
+          <p>Unknown error occurred.</p>
+        )}
+
+        <Scripts />
+      </body>
+    </html>
+  );
+}
 export default function App() {
   return <Outlet />;
 }

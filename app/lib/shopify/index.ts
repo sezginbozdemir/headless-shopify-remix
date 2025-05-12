@@ -3,13 +3,17 @@ import { getClient } from "./client";
 import {
   Product,
   Collection,
-  Connection,
   Menu,
   ShopifyCart,
   Page,
-  ShopifyProduct,
   ProductsResult,
   ProductFilter,
+  CustomerCreateResponse,
+  CustomerFormData,
+  Customer,
+  AccessTokenFormData,
+  AccessTokenResponse,
+  ShopifyCustomer,
 } from "./types";
 import {
   getCollectionProductsQuery,
@@ -28,6 +32,14 @@ import { getPageQuery, getPagesQuery } from "./queries/page";
 import { searchProductsQuery } from "./queries/search";
 import { extractUniqueOptions } from "../utils";
 import { getProductMetaQuery } from "./queries/metadata";
+import {
+  createAccessTokenMutation,
+  createCustomerMutation,
+} from "./mutations/customer";
+import { ClientResponse } from "@shopify/storefront-api-client";
+import { getCustomerQuery } from "./queries/customer";
+import { commitSession, getSession } from "../session.server";
+import { removeEdgesAndNodes, reshapeCustomer, reshapeProducts } from "./utils";
 const client = getClient();
 
 type ProductVariables = {
@@ -58,35 +70,6 @@ interface CollectionProductsProps {
   filters?: ProductFilter[];
   reverse?: boolean;
 }
-
-const removeEdgesAndNodes = <T>(array: Connection<T>): T[] => {
-  return array.edges.map((edge) => edge?.node);
-};
-const reshapeProduct = (product: ShopifyProduct) => {
-  const { images, variants, collections, ...rest } = product;
-
-  return {
-    ...rest,
-    images: removeEdgesAndNodes(images),
-    variants: removeEdgesAndNodes(variants),
-    collections: removeEdgesAndNodes(collections),
-  };
-};
-const reshapeProducts = (products: ShopifyProduct[]) => {
-  const reshapedProducts = [];
-
-  for (const product of products) {
-    if (product) {
-      const reshapedProduct = reshapeProduct(product);
-
-      if (reshapedProduct) {
-        reshapedProducts.push(reshapedProduct);
-      }
-    }
-  }
-
-  return reshapedProducts;
-};
 
 export async function getSearchProducts({
   sortKey,
@@ -393,5 +376,84 @@ export async function getPages(): Promise<Page[]> {
   } catch (err) {
     console.error("Failed to get pages", err);
     throw new Error("Unable to get pages.");
+  }
+}
+
+export async function createCustomer(
+  customerData: CustomerFormData
+): Promise<CustomerCreateResponse> {
+  try {
+    const response: ClientResponse<CustomerCreateResponse> =
+      await client.request(createCustomerMutation, {
+        variables: {
+          input: { ...customerData },
+        },
+      });
+    if (!response.data) {
+      console.log(response.errors);
+      throw new Error("No data returned from createCustomer mutation");
+    }
+    if (!response.data.customerCreate.customer) {
+      console.log(response.data.customerCreate.customerUserErrors);
+      throw new Error("data returned errored from createCustomer mutation");
+    }
+    return response.data;
+  } catch (err) {
+    throw new Error("Error creating customer");
+  }
+}
+
+export async function createAccessToken(
+  tokenData: AccessTokenFormData
+): Promise<{ data: AccessTokenResponse; headers: Headers } | null> {
+  const session = await getSession();
+
+  try {
+    const response: ClientResponse<AccessTokenResponse> = await client.request(
+      createAccessTokenMutation,
+      {
+        variables: {
+          input: {
+            email: tokenData.email,
+            password: tokenData.password,
+          },
+        },
+      }
+    );
+    if (!response.data) {
+      console.log(response.errors);
+      throw new Error("No data returned from createAccessToken mutation");
+    }
+    session.set(
+      "customerToken",
+      response.data.customerAccessTokenCreate.customerAccessToken.accessToken
+    );
+    const headers = new Headers();
+
+    headers.append("Set-Cookie", await commitSession(session));
+
+    return {
+      data: response.data,
+      headers,
+    };
+  } catch (err) {
+    throw new Error("Error creating access token");
+  }
+}
+
+export async function getCustomerInfo(accessToken: string): Promise<Customer> {
+  try {
+    const response: ClientResponse<{ customer: ShopifyCustomer }> =
+      await client.request(getCustomerQuery, {
+        variables: { accessToken },
+      });
+    if (!response.data) {
+      console.log(response.errors);
+      throw new Error("No data returned from createCustomer mutation");
+    }
+    return reshapeCustomer(response.data.customer);
+  } catch (err) {
+    console.log(err);
+    throw new Error("Error fetching customer info");
   }
 }

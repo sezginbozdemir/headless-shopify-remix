@@ -18,6 +18,14 @@ export default defineConfig({
         v3_singleFetch: true,
         v3_lazyRouteDiscovery: true,
       },
+      routes(defineRoutes) {
+        return defineRoutes((route) => {
+          route("account", "routes/account/layout.tsx", () => {
+            route("", "routes/account/route.tsx", { index: true });
+            route("auth", "routes/account/auth.tsx");
+          });
+        });
+      },
     }),
     tsconfigPaths(),
   ],

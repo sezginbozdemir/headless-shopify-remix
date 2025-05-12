@@ -9,7 +9,6 @@ export type Edge<T> = {
 export type Image = {
   altText: string;
   url: string;
-  src: string;
 };
 
 export type Collection = {
@@ -155,4 +154,89 @@ export type Page = {
   seo?: SEO;
   createdAt: string;
   updatedAt: string;
+};
+export type CustomerFormData = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phone?: string;
+  acceptsMarketing: boolean;
+};
+
+export type CustomerCreateResponse = {
+  customerCreate: {
+    customer: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone?: string;
+      acceptsMarketing: boolean;
+    } | null;
+    customerUserErrors: Array<{
+      field: string[];
+      message: string;
+      code: string;
+    }>;
+  };
+};
+
+export type AccessTokenFormData = {
+  email: string;
+  password: string;
+};
+
+export type AccessTokenResponse = {
+  customerAccessTokenCreate: {
+    customerAccessToken: {
+      accessToken: string;
+      expiresAt: string;
+    };
+    userErrors: {
+      field: string[];
+      message: string;
+    }[];
+  };
+};
+type Address = {
+  address1: string;
+  address2: string;
+  city: string;
+  country: string;
+  id: string;
+};
+type OrderLineItems = {
+  title: string;
+  currentQuantity: number;
+  discountedTotalPrice: Money;
+  variant: ProductVariant;
+};
+
+type ShopifyOrder = {
+  currentSubtotalPrice: Money;
+  currentTotalPrice: Money;
+  currentTotalShippingPrice: Money;
+  currentTotalTax: Money;
+  customerUrl: string;
+  financialStatus: string;
+  orderNumber: string;
+  lineItems: Connection<OrderLineItems>;
+};
+export type Order = Omit<ShopifyOrder, "lineItems"> & {
+  lineItems: OrderLineItems[];
+};
+
+export type ShopifyCustomer = {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  addresses: Connection<Address>;
+  defaultAddress: Address | null;
+  orders: Connection<ShopifyOrder>;
+};
+
+export type Customer = Omit<ShopifyCustomer, "addresses" | "orders"> & {
+  addresses: Address[] | [];
+  orders: Order[] | [];
 };
