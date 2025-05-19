@@ -28,6 +28,15 @@ export const searchProductsQuery = /* GraphQL */ `
         endCursor
         startCursor
       }
+      productFilters {
+        label
+        values {
+          count
+          input
+          label
+        }
+      }
+      totalCount
       edges {
         node {
           ...product

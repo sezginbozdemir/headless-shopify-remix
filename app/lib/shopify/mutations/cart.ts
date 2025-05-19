@@ -17,10 +17,10 @@ export const addToCartMutation = /* GraphQL */ `
 
 export const createCartMutation = /* GraphQL */ `
   mutation createCart(
-    $lineItems: [CartLineInput!]
-    $buyerIdentity: CartBuyerIdentity
+    $lines: [CartLineInput!]
+    $buyerIdentity: CartBuyerIdentityInput
   ) {
-    cartCreate(input: { lines: $lineItems, buyerIdentity: $buyerIdentity }) {
+    cartCreate(input: { lines: $lines, buyerIdentity: $buyerIdentity }) {
       cart {
         ...cart
       }

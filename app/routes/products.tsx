@@ -1,8 +1,15 @@
-import { type LoaderFunction, type MetaFunction } from "@remix-run/node";
-import { getProductMeta, getCollectionProducts } from "@/lib/shopify";
+import { data, type LoaderFunction, type MetaFunction } from "@remix-run/node";
+import {
+  getCollectionProducts,
+  getCollections,
+  getFilters,
+} from "@/lib/shopify";
 import { useLoaderData } from "@remix-run/react";
 import { parseFilters } from "@/lib/utils";
 import { ProductLayout } from "@/components/product/product-layout";
+import { Spacing } from "@/components/spacing";
+import { Separator } from "@/components/ui/separator";
+import { Collection } from "@/lib/shopify/types";
 export const meta: MetaFunction = () => {
   return [
     { title: "New Remix App" },
@@ -10,43 +17,60 @@ export const meta: MetaFunction = () => {
   ];
 };
 export const loader: LoaderFunction = async ({ request }) => {
-  const url = new URL(request.url);
-  const { brands, types, options } = await getProductMeta();
-  const filters = parseFilters(url, options);
-  const after = url.searchParams.get("after") ?? undefined;
-  const before = url.searchParams.get("before") ?? undefined;
-  const sort = url.searchParams.get("sort") ?? undefined;
+  const params = new URL(request.url).searchParams;
+  const sort = params.get("sort") ?? undefined;
+  const collectionKey = params.get("collection") ?? undefined;
   const [sortField, sortOrder] = sort?.split("-") ?? ["CREATED", "ASC"];
+  const filtersReq = await getFilters({
+    collection: collectionKey || "all-products",
+  });
+  const availableFilters = filtersReq.success ? filtersReq.result : undefined;
+  const filters = availableFilters
+    ? parseFilters(params, availableFilters)
+    : undefined;
+  const after = params.get("after") ?? undefined;
+  const before = params.get("before") ?? undefined;
   const reverse = sortOrder === "DESC";
-  const collectionProducts = await getCollectionProducts({
-    collection: "all-products",
+  const collectionsReq = await getCollections();
+  const collections = collectionsReq.success ? collectionsReq.result : null;
+  const productsReq = await getCollectionProducts({
+    collection: collectionKey || "all-products",
     filters,
     sortKey: sortField,
     after,
     before,
     reverse,
   });
+  if (!productsReq.success) {
+    throw data({ error: productsReq.error }, { status: 500 });
+  }
+  const products = productsReq.result;
 
   return {
-    collectionProducts,
-    options,
-    brands,
-    types,
+    products,
+    collectionKey,
+    collections,
   };
 };
 
 export default function ProductsPage() {
-  const { options, brands, types, collectionProducts } =
+  const { collections, products, collectionKey } =
     useLoaderData<typeof loader>();
+  const collection = collections.find(
+    (item: Collection) => item.handle === collectionKey
+  );
+  const title = collection?.title || "Products";
+  const desc = collection?.description || "";
 
   return (
     <>
-      <ProductLayout
-        options={options}
-        brands={brands}
-        types={types}
-        productsData={collectionProducts}
-      />
+      <div className="flex gap-5 items-center">
+        <h1 className="text-6xl font-[500]">{title}</h1>
+        {desc && <Separator className="h-[30px]" orientation="vertical" />}
+        <h5 className="text-xl text-gray-600">{desc}</h5>
+      </div>
+      <Spacing size={2} />
+      <ProductLayout filters={products.filters} productsData={products} />
     </>
   );
 }

@@ -47,6 +47,7 @@ export const getCustomerQuery = /* GraphQL */ `
             customerUrl
             financialStatus
             orderNumber
+            processedAt
             lineItems(first: 250) {
               edges {
                 node {

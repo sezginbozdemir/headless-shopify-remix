@@ -1,4 +1,5 @@
 import { collectionFragment } from "../fragments/collection";
+import { imageFragment } from "../fragments/image";
 import { productFragment } from "../fragments/product";
 import { seoFragment } from "../fragments/seo";
 
@@ -14,6 +15,7 @@ export const getCollectionsQuery = /* GraphQL */ `
   }
   ${collectionFragment}
   ${seoFragment}
+  ${imageFragment}
 `;
 
 export const getCollectionProductsQuery = /* GraphQL */ `
@@ -42,6 +44,14 @@ export const getCollectionProductsQuery = /* GraphQL */ `
           hasPreviousPage
           endCursor
           startCursor
+        }
+        filters {
+          label
+          values {
+            count
+            input
+            label
+          }
         }
 
         edges {

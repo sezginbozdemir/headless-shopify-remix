@@ -1,4 +1,12 @@
-import { Connection, Product, ShopifyCustomer, ShopifyProduct } from "./types";
+import {
+  Collection,
+  Connection,
+  Product,
+  ShopifyCart,
+  ShopifyCollection,
+  ShopifyCustomer,
+  ShopifyProduct,
+} from "./types";
 
 export function getSaleInfo(product: Product) {
   let maxDiscount = 0;
@@ -26,6 +34,36 @@ export function getSaleInfo(product: Product) {
 export const removeEdgesAndNodes = <T>(array: Connection<T>): T[] => {
   return array.edges.map((edge) => edge?.node);
 };
+export const cleanCollections = (
+  collections: Connection<ShopifyCollection>
+): Collection[] => {
+  return removeEdgesAndNodes(collections).map((collection) => {
+    if (collection.products) {
+      const collectionProducts = removeEdgesAndNodes(collection.products);
+
+      const type =
+        collection.handle === "all-products"
+          ? undefined
+          : collection.handle === "sale"
+          ? undefined
+          : collectionProducts.length > 0
+          ? collectionProducts[0].productType
+          : undefined;
+
+      const { products, ...rest } = collection;
+      return {
+        ...rest,
+        type,
+      };
+    }
+
+    const { products, ...rest } = collection;
+    return {
+      ...rest,
+      type: undefined,
+    };
+  });
+};
 export const reshapeProduct = (product: ShopifyProduct) => {
   const { images, variants, collections, ...rest } = product;
 
@@ -33,7 +71,7 @@ export const reshapeProduct = (product: ShopifyProduct) => {
     ...rest,
     images: removeEdgesAndNodes(images),
     variants: removeEdgesAndNodes(variants),
-    collections: removeEdgesAndNodes(collections),
+    collections: collections ? cleanCollections(collections) : [],
   };
 };
 export const reshapeCustomer = (customer: ShopifyCustomer) => {
@@ -46,6 +84,13 @@ export const reshapeCustomer = (customer: ShopifyCustomer) => {
       ...order,
       lineItems: removeEdgesAndNodes(order.lineItems),
     })),
+  };
+};
+export const reshapeCart = (cart: ShopifyCart) => {
+  const { lines, ...rest } = cart;
+  return {
+    ...rest,
+    lines: removeEdgesAndNodes(lines),
   };
 };
 

@@ -25,13 +25,18 @@ export function OptionsFilter({ options }: Props) {
           <AccordionContent>
             <ScrollArea className="h-[200px]">
               {optionValues.map((value: string) => (
-                <div key={value}>
+                <div className="flex gap-2 items-center" key={value}>
                   <Checkbox
                     checked={searchParams.getAll(optionName).includes(value)}
                     onClick={() => updateParams(optionName, value)}
                     id={`${optionName}-${value}`}
                   />
-                  <label htmlFor={`${optionName}-${value}`}>{value}</label>
+                  <label
+                    className="font-heading text-lg"
+                    htmlFor={`${optionName}-${value}`}
+                  >
+                    {value}
+                  </label>
                 </div>
               ))}
             </ScrollArea>

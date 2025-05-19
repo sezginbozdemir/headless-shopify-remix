@@ -1,5 +1,11 @@
 import { AuthForm } from "@/components/auth/auth-form";
-import { createAccessToken, createCustomer } from "@/lib/shopify";
+import { Spacing } from "@/components/spacing";
+import { Separator } from "@/components/ui/separator";
+import {
+  createAccessToken,
+  createCustomer,
+  recoverCustomer,
+} from "@/lib/shopify";
 import { AccessTokenFormData, CustomerFormData } from "@/lib/shopify/types";
 import { ActionFunction, data, redirect } from "@remix-run/node";
 import { LoaderFunction, type MetaFunction } from "@remix-run/node";
@@ -17,6 +23,19 @@ export const action: ActionFunction = async ({ request }) => {
   const mode = url.searchParams.get("mode") ?? "login";
   const formData = await request.formData();
 
+  if (mode === "recover") {
+    const email = formData.get("email") as string;
+
+    const result = await recoverCustomer(email);
+    console.log(result);
+
+    if (result.success) {
+      return redirect("/account/auth?mode=login");
+    }
+
+    return data({ error: result.error }, { status: 400 });
+  }
+
   if (mode === "signup") {
     const customerData: CustomerFormData = {
       email: formData.get("email") as string,
@@ -29,14 +48,11 @@ export const action: ActionFunction = async ({ request }) => {
 
     const result = await createCustomer(customerData);
 
-    if (result) {
+    if (result.success) {
       return redirect("/account/auth?mode=login");
     }
 
-    return data(
-      { error: "Failed to create customer. Please try again later." },
-      { status: 400 }
-    );
+    return data({ error: result.error }, { status: 400 });
   }
 
   const authData: AccessTokenFormData = {
@@ -44,13 +60,13 @@ export const action: ActionFunction = async ({ request }) => {
     password: formData.get("password") as string,
   };
 
-  const { data: access, headers } = await createAccessToken(authData);
+  const res = await createAccessToken(authData);
 
-  if (access) {
-    return redirect("/account", { headers });
+  if (res.success) {
+    return redirect("/account", { headers: res.result });
   }
 
-  return data({ error: "an error ocured" }, { status: 400 });
+  return data({ error: res.error }, { status: 400 });
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -62,6 +78,19 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function AccountAuthPage() {
   const { mode } = useLoaderData<typeof loader>();
-
-  return <AuthForm mode={mode} />;
+  const title =
+    mode === "recover"
+      ? "Reset password"
+      : mode === "login"
+      ? "Login to your account"
+      : "Register account";
+  return (
+    <>
+      <h1 className="text-6xl font-[500]">{title}</h1>
+      <Spacing size={2} />
+      <Separator />
+      <Spacing size={2} />
+      <AuthForm mode={mode} />
+    </>
+  );
 }

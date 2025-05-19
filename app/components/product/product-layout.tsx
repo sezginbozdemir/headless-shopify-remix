@@ -3,43 +3,76 @@ import { ProductFilters } from "@/components/product/product-filters";
 import { ProductGrid } from "@/components/product/product-grid";
 import { PaginationBar } from "@/components/pagination-bar";
 import { Spacing } from "@/components/spacing";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "@remix-run/react";
-import { ProductsResult } from "@/lib/shopify/types";
+import { ProductsResult, ShopifyFilter } from "@/lib/shopify/types";
 
 type ProductLayoutProps = {
-  types: string[];
-  options: Record<string, string[]>;
-  brands: string[];
   productsData: ProductsResult;
+  search?: boolean;
+  filters: ShopifyFilter[];
 };
 
 export function ProductLayout({
-  types,
-  options,
-  brands,
   productsData,
+  search,
+  filters,
 }: ProductLayoutProps) {
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const [searchParams] = useSearchParams();
   const sort = searchParams.get("sort") ?? undefined;
   const products = productsData.products;
+  const filterRef = useRef(null);
+
+  useEffect(() => {
+    if (!filtersOpen && isAnimating) {
+      const timer = setTimeout(() => {
+        setIsAnimating(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [filtersOpen, isAnimating]);
+
+  const handleToggleFilters = () => {
+    if (filtersOpen) {
+      setIsAnimating(true);
+      setFiltersOpen(false);
+    } else {
+      setIsAnimating(true);
+      setFiltersOpen(true);
+    }
+  };
 
   return (
-    <>
+    <div className="w-full">
       <ProductToolbar
-        filtersOpen={filtersOpen}
-        onToggleFilters={() => setFiltersOpen(!filtersOpen)}
+        onToggleFilters={handleToggleFilters}
         sortValue={sort}
+        search={search}
       />
-      <div className="flex relative justify-between gap-[20px]">
-        {filtersOpen && (
-          <div className="min-w-[300px]">
-            <ProductFilters types={types} options={options} brands={brands} />
+      <Spacing size={1} />
+      <div className="flex w-full relative justify-between gap-[10px]">
+        {(filtersOpen || isAnimating) && (
+          <div
+            ref={filterRef}
+            className={`
+              min-w-[300px]
+              animate-duration-300
+              animate-ease-in-out
+              ${
+                filtersOpen
+                  ? "animate-in slide-in-from-left"
+                  : "animate-out slide-out-to-left"
+              }
+            `}
+          >
+            <ProductFilters filters={filters} />
           </div>
         )}
-        <ProductGrid products={products} />
+        <ProductGrid filtersOpen={isAnimating} products={products} />
       </div>
+
       <Spacing size={2} />
       <PaginationBar
         next={productsData.next}
@@ -47,6 +80,6 @@ export function ProductLayout({
         end={productsData.end}
         start={productsData.start}
       />
-    </>
+    </div>
   );
 }

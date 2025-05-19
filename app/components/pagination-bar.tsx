@@ -41,7 +41,7 @@ export function PaginationBar({ next, prev, end, start }: PaginationBarProps) {
     return `?${params.toString()}`;
   };
   return (
-    <Pagination className="w-full">
+    <Pagination className="w-full font-heading">
       <PaginationContent>
         {prev && (
           <PaginationItem>

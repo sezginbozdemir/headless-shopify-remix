@@ -1,8 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { EnvVariables } from "./constants";
-import { useSearchParams, useNavigate } from "@remix-run/react";
-import { ProductFilter } from "./shopify/types";
+import { useSearchParams, useNavigate, useLocation } from "@remix-run/react";
+import { ProductFilter, ShopifyFilter } from "./shopify/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -104,47 +104,42 @@ export function apiFormatter({
   return filters.join(" AND ");
 }
 
-export function parseFilters(url: URL, options: { [key: string]: string[] }) {
-  const priceRange = url.searchParams.get("price")?.split(",").map(Number);
-  const brands = url.searchParams.getAll("brand");
-  const types = url.searchParams.getAll("type");
-  const inStock = url.searchParams.get("stock");
-
+export function parseFilters(
+  params: URLSearchParams,
+  filters: ShopifyFilter[]
+) {
   const productFilters: ProductFilter[] = [];
 
-  if (priceRange?.length === 2) {
-    productFilters.push({
-      price: { min: priceRange[0], max: priceRange[1] },
-    });
-  }
+  for (const filter of filters) {
+    const paramKey = filter.label;
+    if (paramKey === "Price") {
+      const priceParam = params.get("price");
+      if (priceParam) {
+        const [minStr, maxStr] = priceParam.split(",");
+        const min = parseFloat(minStr);
+        const max = parseFloat(maxStr);
 
-  for (const brand of brands) {
-    productFilters.push({
-      productVendor: brand,
-    });
-  }
+        if (!isNaN(min) && !isNaN(max)) {
+          productFilters.push({
+            price: {
+              min,
+              max,
+            },
+          });
+        }
+      }
+      continue;
+    }
+    const paramValues = params.getAll(paramKey);
 
-  for (const type of types) {
-    productFilters.push({
-      productType: type,
-    });
-  }
-
-  if (inStock !== null) {
-    productFilters.push({
-      available: inStock === "true",
-    });
-  }
-
-  for (const [key, values] of Object.entries(options)) {
-    for (const value of values) {
-      if (url.searchParams.getAll(key).includes(value)) {
-        productFilters.push({
-          variantOption: {
-            name: key,
-            value: value,
-          },
-        });
+    for (const value of filter.values) {
+      if (paramValues.includes(value.label)) {
+        try {
+          const parsed = JSON.parse(value.input);
+          productFilters.push(parsed);
+        } catch (error) {
+          console.error(`Invalid JSON in filter input: ${value.input}`, error);
+        }
       }
     }
   }
@@ -152,26 +147,11 @@ export function parseFilters(url: URL, options: { [key: string]: string[] }) {
   return productFilters;
 }
 
-type OptionMap = Record<string, Set<string>>;
+export function useBreadcrumb() {
+  const location = useLocation();
+  const segments = location.pathname.split("/").filter(Boolean);
 
-export function extractUniqueOptions(
-  products: { options: { name: string; values: string[] }[] }[]
-) {
-  const optionMap: OptionMap = {};
-
-  for (const product of products) {
-    for (const option of product.options) {
-      if (!optionMap[option.name]) {
-        optionMap[option.name] = new Set();
-      }
-      option.values.forEach((value) => optionMap[option.name].add(value));
-    }
-  }
-
-  const result: Record<string, string[]> = {};
-  for (const key in optionMap) {
-    result[key] = Array.from(optionMap[key]).sort();
-  }
-
-  return result;
+  return ["Home", ...segments]
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(" / ");
 }

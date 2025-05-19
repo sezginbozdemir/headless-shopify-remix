@@ -1,12 +1,21 @@
+import { Spacing } from "@/components/spacing";
 import { Slider } from "@/components/ui/slider";
+import { ShopifyFilter } from "@/lib/shopify/types";
 import { useSearchParams } from "@remix-run/react";
 import { useState, useMemo } from "react";
 
-export function PriceFilter() {
-  const [searchParams, setSearchParams] = useSearchParams();
+interface Props {
+  filter: ShopifyFilter;
+}
 
-  const defaultMin = 0;
-  const defaultMax = 500;
+export function PriceFilter({ filter }: Props) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  console.log(filter);
+  const values = filter?.values?.[0];
+
+  const inputObj = values?.input ? JSON.parse(values.input) : null;
+  const defaultMin = inputObj?.price?.min ?? 0;
+  const defaultMax = inputObj?.price?.max ?? 1000;
 
   const initialRange = useMemo(() => {
     const param = searchParams.get("price");
@@ -15,7 +24,7 @@ export function PriceFilter() {
     const min = parseInt(minStr, 10);
     const max = parseInt(maxStr, 10);
     return [min, max];
-  }, [searchParams]);
+  }, [searchParams, defaultMax, defaultMin]);
 
   const [priceRange, setPriceRange] = useState<number[]>(initialRange);
 
@@ -27,7 +36,7 @@ export function PriceFilter() {
 
   return (
     <div>
-      <h3>Price Range</h3>
+      <Spacing size={1} />
       <Slider
         min={defaultMin}
         max={defaultMax}
@@ -37,9 +46,9 @@ export function PriceFilter() {
         onValueCommit={handleValueCommit}
         className="mb-2"
       />
-      <div className="text-sm text-gray-700">
+      <h3 className="text-lg text-gray-700">
         RON{priceRange[0]} – RON{priceRange[1]}
-      </div>
+      </h3>
     </div>
   );
 }

@@ -4,6 +4,16 @@ export const collectionFragment = /* GraphQL */ `
     handle
     title
     description
+    image {
+      ...image
+    }
+    products(first: 1) {
+      edges {
+        node {
+          productType
+        }
+      }
+    }
     seo {
       ...seo
     }

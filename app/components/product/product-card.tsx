@@ -1,6 +1,9 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Product } from "@/lib/shopify/types";
 import { getSaleInfo } from "@/lib/shopify/utils";
+import { AddToCart } from "../cart/actions/add-to-cart";
+import { Badge } from "../ui/badge";
+import { useState } from "react";
 
 type ProductCardProps = {
   product: Product;
@@ -10,38 +13,41 @@ export function ProductCard({ product }: ProductCardProps) {
   const primaryImage = product.images[0]?.url;
   const price = product.variants[0]?.price.amount || 0;
   const oldPrice = product.variants[0]?.compareAtPrice?.amount;
-  const isoDate = product.createdAt;
-  const date = new Date(isoDate);
-  const readableDate = date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+  const createdAt = new Date(product.createdAt);
+  const now = new Date();
+  const fourteenDaysAgo = new Date(now);
+  fourteenDaysAgo.setDate(now.getDate() - 14);
+
+  const isNew = createdAt > fourteenDaysAgo;
   const { isOnSale, discount } = getSaleInfo(product);
   return (
-    <Card className="rounded-[20px] h-[25rem] flex flex-col justify-center">
-      <CardHeader className="overflow-hidden p-[3rem]">
+    <Card className="group relative rounded-[15px] hover:rounded-[25px] w-full  h-[35rem] flex flex-col justify-between transition-all hover:shadow-lg">
+      <div className="p-5 flex items-center gap-2">
+        {isOnSale && <Badge className="w-[80px] h-[40px]">{discount}%</Badge>}
+        {isNew && <Badge className="w-[80px] h-[40px]">NEW</Badge>}
+      </div>
+      <CardHeader className="overflow-hidden p-[1rem] h-[20rem]">
         <img
           src={primaryImage}
           alt={product.title}
-          className="w-full h-full object-contain mb-4"
+          className="w-full h-full  object-contain mb-4 transition-transform duration-300 ease-in-out group-hover:scale-105"
         />
       </CardHeader>
-      <CardContent className="">
-        <p className="text-sm text-gray-600">{product.vendor}</p>
-        <h2 className="text-xl font-bold">{product.title}</h2>
+      <div className="w-[180px] self-center m-5 transition-all invisible group-hover:visible group-hover:animate-in group-hover:slide-in-from-bottom">
+        <AddToCart product={product} />
+      </div>
+
+      <CardContent className="flex flex-col justify-between gap-3">
+        <p className="text-sm uppercase text-gray-600">{product.vendor}</p>
+        <h2 className="text-2xl font-[400]">{product.title}</h2>
         <div className="flex gap-[1rem] ">
-          <p className="text-lg font-semibold text-red-500">${price}</p>
+          <p className="text-xl font-[400] font-heading">${price}</p>
           {oldPrice && (
-            <p className="text-lg font-semibold line-through">${oldPrice}</p>
+            <p className="text-xl font-[400] font-heading line-through text-gray-600">
+              ${oldPrice}
+            </p>
           )}
-          <p className="text-lg font-light">{readableDate}</p>
         </div>
-        {isOnSale && (
-          <p className="text-xs text-green-600 mt-1 font-medium">
-            On Sale! {discount}% off
-          </p>
-        )}
       </CardContent>
     </Card>
   );

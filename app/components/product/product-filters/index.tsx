@@ -1,7 +1,5 @@
-import { Card } from "@/components/ui/card";
-import { useLoaderData, useSearchParams } from "@remix-run/react";
+import { useSearchParams } from "@remix-run/react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { OptionsFilter } from "./options-filter";
 import { useUpdateParams } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PriceFilter } from "./price-filter";
@@ -11,55 +9,58 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
+import { Spacing } from "@/components/spacing";
+import { ShopifyFilter } from "@/lib/shopify/types";
 
 type Props = {
-  brands: string[];
-  options: Record<string, string[]>;
-  types: string[];
+  filters: ShopifyFilter[];
 };
 
-export function ProductFilters({ types, brands, options }: Props) {
+export function ProductFilters({ filters }: Props) {
   const [searchParams] = useSearchParams();
   const updateParams = useUpdateParams();
 
   return (
-    <Card className="px-[2rem] py-[1rem] w-full h-[100vh] sticky top-0">
-      <div>
-        <Checkbox
-          checked={searchParams.get("stock") === "true"}
-          onClick={() => updateParams("stock", "true")}
-          id="stock"
-        />
-        <label htmlFor="stock">In stock</label>
-      </div>
-      <Accordion type="single" collapsible className="w-full">
-        {[types, brands].map((items, index) => {
-          const paramKey = index === 0 ? "type" : "brand";
-          const title = index === 0 ? "Types" : "Brands";
-
-          return (
-            <AccordionItem key={paramKey} value={paramKey}>
-              <AccordionTrigger>{title}</AccordionTrigger>
+    <div className="flex gap-2 h-[100vh]  sticky top-0">
+      <div className="py-[1rem] w-full h-full">
+        <Accordion type="single" collapsible className="w-full">
+          {filters.map((filter, index) => (
+            <AccordionItem key={index} value={filter.label}>
+              <AccordionTrigger>{filter.label}</AccordionTrigger>
               <AccordionContent>
                 <ScrollArea className="h-[200px]">
-                  {items.map((item) => (
-                    <div key={item}>
-                      <Checkbox
-                        checked={searchParams.getAll(paramKey).includes(item)}
-                        onClick={() => updateParams(paramKey, item)}
-                        id={`${paramKey}-${item}`}
-                      />
-                      <label htmlFor={`${paramKey}-${item}`}>{item}</label>
-                    </div>
-                  ))}
+                  {filter.label === "Price" ? (
+                    <PriceFilter filter={filter} />
+                  ) : (
+                    filter.values.map((value, idx) => (
+                      <div className="flex gap-2 items-center" key={idx}>
+                        <Checkbox
+                          checked={searchParams
+                            .getAll(filter.label)
+                            .includes(value.label)}
+                          onClick={() =>
+                            updateParams(filter.label, value.label)
+                          }
+                          id={`${value.label}`}
+                        />
+                        <label
+                          className="font-heading text-lg"
+                          htmlFor={`${value.label}`}
+                        >
+                          {value.label}
+                        </label>
+                      </div>
+                    ))
+                  )}
                 </ScrollArea>
               </AccordionContent>
             </AccordionItem>
-          );
-        })}
-      </Accordion>
-      <OptionsFilter options={options} />
-      <PriceFilter />
-    </Card>
+          ))}
+        </Accordion>
+        <Spacing size={1} />
+      </div>
+      <Separator orientation="vertical" />
+    </div>
   );
 }

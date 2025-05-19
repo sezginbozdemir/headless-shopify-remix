@@ -4,11 +4,18 @@ import { ProductCard } from "./product-card";
 
 type ProductGridProps = {
   products: Product[];
+  filtersOpen: boolean;
 };
 
-export function ProductGrid({ products }: ProductGridProps) {
+export function ProductGrid({ products, filtersOpen }: ProductGridProps) {
   return (
-    <Grid className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <Grid
+      className={` w-full
+        grid-cols-1 md:grid-cols-2 
+        ${filtersOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"}
+        gap-6 transition-all
+      `}
+    >
       {products.map((product) => (
         <Grid.Item key={product.id}>
           <ProductCard product={product} />

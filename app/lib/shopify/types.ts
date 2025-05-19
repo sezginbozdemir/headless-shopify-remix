@@ -11,12 +11,24 @@ export type Image = {
   url: string;
 };
 
+export type ShopifyCollection = {
+  title: string;
+  id: string;
+  handle: string;
+  description: string;
+  seo: SEO;
+  products: Connection<{ productType: string }>;
+  image: Image | null;
+};
+
 export type Collection = {
   title: string;
   id: string;
   handle: string;
   description: string;
   seo: SEO;
+  type: string | undefined;
+  image: Image | null;
 };
 
 export type ProductOptions = {
@@ -68,17 +80,37 @@ export type ShopifyProduct = {
   productType: string;
   options: ProductOptions[];
   images: Connection<Image>;
-  collections: Connection<Collection>;
+  collections: Connection<ShopifyCollection>;
   variants: Connection<ProductVariant>;
   featuredImage: Image;
 };
+export type ShopifyFilter = {
+  label: string;
+  values: {
+    count: number;
+    input: string;
+    label: string;
+  }[];
+};
 export type ProductsResult = {
+  count?: number;
   products: Product[];
   next: boolean;
   prev: boolean;
   end: string | null;
   start: string | null;
+  filters?: ShopifyFilter[];
 };
+export type ProductsMeta = {
+  brands: string[];
+  types: string[];
+  options: Record<string, string[]>;
+};
+
+export type ApiResult<T = undefined> =
+  | { success: true; result: T }
+  | { success: false; error: string };
+
 export type ProductFilter =
   | { available: boolean }
   | { price: { min?: number; max?: number } }
@@ -120,6 +152,10 @@ export type ShopifyCart = {
   };
   lines: Connection<CartItem>;
   totalQuantity: number;
+};
+
+export type Cart = Omit<ShopifyCart, "lines"> & {
+  lines: CartItem[];
 };
 
 export type CartItem = {
@@ -198,7 +234,7 @@ export type AccessTokenResponse = {
     }[];
   };
 };
-type Address = {
+export type Address = {
   address1: string;
   address2: string;
   city: string;
@@ -221,6 +257,7 @@ type ShopifyOrder = {
   financialStatus: string;
   orderNumber: string;
   lineItems: Connection<OrderLineItems>;
+  processedAt: Date;
 };
 export type Order = Omit<ShopifyOrder, "lineItems"> & {
   lineItems: OrderLineItems[];
@@ -234,6 +271,27 @@ export type ShopifyCustomer = {
   addresses: Connection<Address>;
   defaultAddress: Address | null;
   orders: Connection<ShopifyOrder>;
+};
+export type ShopInfo = {
+  name: string;
+  brand: {
+    colors: {
+      primary: {
+        background: string;
+        foreground: string;
+      }[];
+      secondary: {
+        background: string;
+        foreground: string;
+      }[];
+    };
+    logo: {
+      image: Image;
+    };
+  };
+  primaryDomain: {
+    url: string;
+  };
 };
 
 export type Customer = Omit<ShopifyCustomer, "addresses" | "orders"> & {

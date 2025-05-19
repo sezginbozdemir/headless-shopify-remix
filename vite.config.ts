@@ -22,8 +22,13 @@ export default defineConfig({
         return defineRoutes((route) => {
           route("account", "routes/account/layout.tsx", () => {
             route("", "routes/account/route.tsx", { index: true });
-            route("auth", "routes/account/auth.tsx");
+            route("orders", "routes/account/orders.tsx");
+            route("addresses", "routes/account/addresses.tsx");
+            route("orders/:order", "routes/account/order.tsx");
           });
+          route("account/auth", "routes/account/auth.tsx");
+          route("api/cart/add", "routes/api/cart/add.ts");
+          route("api/cart/edit", "routes/api/cart/edit.ts");
         });
       },
     }),
