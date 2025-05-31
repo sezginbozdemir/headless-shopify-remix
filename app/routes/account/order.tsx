@@ -1,28 +1,44 @@
-import { LoaderFunction, data } from "@remix-run/node";
+import { LoaderFunction, MetaFunction } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { getCustomerInfo } from "@/lib/shopify";
 import { Order } from "@/lib/shopify/types";
 import { ArrowLeft } from "lucide-react";
 
+export const meta: MetaFunction = () => {
+  return [
+    { title: "New Remix App" },
+    { name: "description", content: "Welcome to Remix!" },
+  ];
+};
+
 export const loader: LoaderFunction = async ({ params, request }) => {
   const orderNumber = params.order;
 
   if (!orderNumber) {
-    return data({ error: "No order for this number" }, { status: 400 });
+    throw new Response("No order for this number", {
+      status: 400,
+      statusText: "No order for this number",
+    });
   }
 
   const req = await getCustomerInfo(request);
 
   if (!req.success) {
-    return data({ error: req.error }, { status: 500 });
+    throw new Response(req.error, {
+      status: 500,
+      statusText: "failed to fetch customer info, please try again later",
+    });
   }
 
   const order = req.result.orders.find(
-    (o: Order) => String(o.orderNumber) === orderNumber
+    (o: Order) => String(o.orderNumber) === orderNumber,
   );
 
   if (!order) {
-    return data({ error: "Order not found" }, { status: 404 });
+    throw new Response("Order not found", {
+      status: 404,
+      statusText: "Order not found",
+    });
   }
 
   return { order };

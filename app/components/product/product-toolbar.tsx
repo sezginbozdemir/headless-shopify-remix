@@ -7,9 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { ListFilterPlus } from "lucide-react";
+import { ListFilterPlus, X } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Spacing } from "../spacing";
+import { Badge } from "../ui/badge";
 
 type Props = {
   onToggleFilters: () => void;
@@ -35,7 +36,22 @@ const searchSortKeys = [
 export function ProductToolbar({ onToggleFilters, sortValue, search }: Props) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-
+  const excludedParams = [
+    "query",
+    "sort",
+    "page",
+    "after",
+    "before",
+    "collection",
+  ];
+  const filters = Array.from(searchParams.entries()).reduce<
+    Record<string, string[]>
+  >((acc, [key, value]) => {
+    if (excludedParams.includes(key)) return acc;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(value);
+    return acc;
+  }, {});
   function updateSortParam(value: string) {
     const params = new URLSearchParams(searchParams);
 
@@ -43,6 +59,19 @@ export function ProductToolbar({ onToggleFilters, sortValue, search }: Props) {
     params.delete("after");
     params.delete("before");
     params.delete("page");
+    navigate(`?${params.toString()}`);
+  }
+  function removeFilter(key: string, valueToRemove: string) {
+    const params = new URLSearchParams(searchParams);
+
+    const currentValues = params.getAll(key);
+
+    const updatedValues = currentValues.filter((v) => v !== valueToRemove);
+
+    params.delete(key);
+
+    updatedValues.forEach((v) => params.append(key, v));
+
     navigate(`?${params.toString()}`);
   }
 
@@ -60,6 +89,32 @@ export function ProductToolbar({ onToggleFilters, sortValue, search }: Props) {
           Filters
           <ListFilterPlus size={30} />
         </Button>
+        <div className="flex flex-1 gap-4">
+          {Object.entries(filters).map(([key, values]) => (
+            <div
+              key={key}
+              className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-full"
+            >
+              <span className="font-medium">{key}</span>
+              <div className="flex gap-1">
+                {values.map((value, idx) => (
+                  <Badge
+                    key={idx}
+                    className="px-2 py-1 rounded-full bg-white text-foreground hover:bg-white hover:border-foreground"
+                  >
+                    {value}
+                    <X
+                      onClick={() => removeFilter(key, value)}
+                      className="ml-2 cursor-pointer"
+                      size={14}
+                    />
+                  </Badge>
+                ))}
+              </div>
+              <span className="text-gray-500">({values.length})</span>
+            </div>
+          ))}
+        </div>
 
         <div className="flex gap-2 items-center">
           <h2 className="text-2xl font-[500]">Sort by:</h2>

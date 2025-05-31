@@ -46,8 +46,16 @@ export const getCustomerQuery = /* GraphQL */ `
             }
             customerUrl
             financialStatus
+            fulfillmentStatus
             orderNumber
             processedAt
+            shippingAddress {
+              address1
+              address2
+              city
+              country
+              id
+            }
             lineItems(first: 250) {
               edges {
                 node {

@@ -16,9 +16,9 @@ import { useState } from "react";
 
 const menu = [
   { label: "Home", to: "/" },
+  { label: "Collections", to: "/collections" },
   { label: "Products", to: "/products" },
   { label: "Sale", to: "/products?collection=sale" },
-  { label: "Blogs", to: "/products" },
 ];
 
 interface Props {
@@ -27,12 +27,12 @@ interface Props {
 export default function NavDropdown({ collections }: Props) {
   const [hoveredType, setHoveredType] = useState("Winter Apparel");
   const filteredCollections = collections.filter(
-    (collection) => collection.type === hoveredType
+    (collection) => collection.type === hoveredType,
   );
   const [menuKey, setMenuKey] = useState("");
   return (
     <NavigationMenu
-      className="font-[500] max-w-full"
+      className="font-[500] max-w-full z-30"
       value={menuKey}
       onValueChange={setMenuKey}
     >
@@ -62,7 +62,7 @@ export default function NavDropdown({ collections }: Props) {
                     <div className="flex flex-col items-start gap-9 h-full">
                       {[
                         ...new Set(
-                          collections.map((item) => item.type).filter(Boolean)
+                          collections.map((item) => item.type).filter(Boolean),
                         ),
                       ].map((type, index) => (
                         <Button

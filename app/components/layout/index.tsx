@@ -1,43 +1,63 @@
 import React, { useEffect, useState, useRef } from "react";
 import Nav from "./nav";
 import Footer from "./footer";
-import { Cart, Collection, ShopInfo } from "@/lib/shopify/types";
+import {
+  Cart,
+  Collection,
+  Menu,
+  Metaobject,
+  Page,
+  ShopInfo,
+} from "@/lib/shopify/types";
 import { Spacing } from "../spacing";
 import { Container } from "../ui/container";
 import { useBreadcrumb } from "@/lib/utils";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
-import { CartList } from "../cart/cart-list";
-import { CartSummary } from "../cart/cart-summary";
-import { ScrollArea } from "../ui/scroll-area";
-import { Separator } from "../ui/separator";
+import { useCartStore } from "@/store/cart";
+import { AnnouncementBar } from "./announcement-bar";
+import { CartSheet } from "./cart-sheet";
 
 interface Props {
   shop: ShopInfo;
   collections: Collection[];
   children: React.ReactNode;
-  cart: Cart | "NO_CART";
+  loaderCart: Cart | "NO_CART";
+  isCustomer: boolean;
+  footer: Menu[];
+  pages: Page[];
+  announcements: Metaobject[];
 }
 
 export default function RootLayout({
   children,
   shop,
   collections,
-  cart,
+  loaderCart,
+  isCustomer,
+  footer,
+  pages,
+  announcements,
 }: Props) {
   const [showStickyNav, setShowStickyNav] = useState(false);
   const lastScrollY = useRef(0);
   const navRef = useRef<HTMLElement | null>(null);
   const [navInView, setNavInView] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const emptyCart = !cart || cart === "NO_CART" || cart.lines.length === 0;
+  const { cart, setCart, isCartOpen, setIsCartOpen } = useCartStore();
+  useEffect(() => {
+    if (loaderCart !== "NO_CART") {
+      setCart(loaderCart);
+    }
+  }, [loaderCart, setCart]);
+  const emptyCart =
+    loaderCart === "NO_CART" || cart?.lines.length === 0 || cart === null;
+
   useEffect(() => {
     const navElement = navRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
         setNavInView(entry.isIntersecting);
       },
-      { threshold: 0 }
+      { threshold: 0 },
     );
 
     if (navElement) observer.observe(navElement);
@@ -75,17 +95,22 @@ export default function RootLayout({
     return () => clearTimeout(timeout);
   }, [showStickyNav]);
   const breadcrumb = useBreadcrumb();
+  const announcementsArray = JSON.parse(announcements[0].fields[0].value);
+  const cartTotalQuantity = cart?.totalQuantity;
 
   return (
     <>
       <header ref={navRef}>
+        <AnnouncementBar announcements={announcementsArray} />
         <Nav
+          cartQuantity={cartTotalQuantity}
           shop={shop}
           collections={collections}
           openCart={() => setIsCartOpen(true)}
+          isCustomer={isCustomer}
         />
         {breadcrumb !== "Home" && (
-          <div className="flex items-center w-full bg-gray-100 h-[50px] w-full ">
+          <div className="flex items-center bg-gray-100 h-[50px] w-full ">
             <Container className="flex items-center text-sm w-full h-full">
               <p>{breadcrumb}</p>
             </Container>
@@ -105,38 +130,27 @@ export default function RootLayout({
             shop={shop}
             collections={collections}
             openCart={() => setIsCartOpen(true)}
+            isCustomer={isCustomer}
+            cartQuantity={cartTotalQuantity}
           />
         </div>
       )}
+      <CartSheet
+        open={isCartOpen}
+        onOpenChange={setIsCartOpen}
+        cart={cart}
+        emptyCart={emptyCart}
+      />
 
-      <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
-        <SheetContent
-          side="right"
-          className="w-full flex flex-col sm:w-[650px]"
-        >
-          <SheetHeader>
-            <SheetTitle className="text-5xl font-[450] self-start">
-              Your Cart
-            </SheetTitle>
-          </SheetHeader>
-          <Spacing size={2} />
-          <Separator />
-          <Spacing size={2} />
-          <ScrollArea>
-            <CartList sheet cart={cart} />
-          </ScrollArea>
-          {!emptyCart && (
-            <CartSummary
-              closeSheet={() => setIsCartOpen(false)}
-              sheet
-              cart={cart}
-            />
-          )}
-        </SheetContent>
-      </Sheet>
       <Spacing size={2} />
       <main>{children}</main>
-      <Footer />
+      <Spacing size={2} />
+      <Footer
+        pages={pages}
+        footer={footer}
+        shop={shop}
+        collections={collections}
+      />
     </>
   );
 }

@@ -59,7 +59,10 @@ export const loader: LoaderFunction = async ({
     reverse: reverse,
   });
   if (!req.success) {
-    throw data({ error: req.error }, { status: 500 });
+    throw new Response(req.error, {
+      status: 500,
+      statusText: "Failed to get search products, please try again later",
+    });
   }
 
   const search = req.result;
@@ -74,8 +77,6 @@ export const loader: LoaderFunction = async ({
 
 export default function SearchPage() {
   const { search, filters, count, query } = useLoaderData<typeof loader>();
-  console.log(count);
-
   return (
     <>
       <div className="flex gap-5 items-center mt-4">

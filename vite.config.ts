@@ -9,6 +9,10 @@ declare module "@remix-run/node" {
 }
 
 export default defineConfig({
+  server: {
+    host: true,
+    allowedHosts: ["modification-cord-bathroom-binary.trycloudflare.com"],
+  },
   plugins: [
     remix({
       future: {
@@ -20,15 +24,25 @@ export default defineConfig({
       },
       routes(defineRoutes) {
         return defineRoutes((route) => {
-          route("account", "routes/account/layout.tsx", () => {
-            route("", "routes/account/route.tsx", { index: true });
-            route("orders", "routes/account/orders.tsx");
-            route("addresses", "routes/account/addresses.tsx");
-            route("orders/:order", "routes/account/order.tsx");
+          route("", "routes/layout.tsx", () => {
+            route("", "routes/_index.tsx", { index: true });
+            route("account", "routes/account/layout.tsx", () => {
+              route("", "routes/account/route.tsx", { index: true });
+              route("orders", "routes/account/orders.tsx");
+              route("addresses", "routes/account/addresses.tsx");
+              route("orders/:order", "routes/account/order.tsx");
+            });
+            route("products", "routes/products/route.tsx", { index: true });
+            route("products/:product", "routes/products/product.tsx");
+
+            route("account/auth", "routes/account/auth.tsx");
+            route("cart", "routes/cart.tsx");
+            route("collections", "routes/collections.tsx");
+            route(":page", "routes/page.tsx");
+            route("search", "routes/search.tsx");
+            route("api/cart/add", "routes/api/cart/add.ts");
+            route("api/cart/edit", "routes/api/cart/edit.ts");
           });
-          route("account/auth", "routes/account/auth.tsx");
-          route("api/cart/add", "routes/api/cart/add.ts");
-          route("api/cart/edit", "routes/api/cart/edit.ts");
         });
       },
     }),

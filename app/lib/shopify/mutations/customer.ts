@@ -24,7 +24,7 @@ export const createAccessTokenMutation = /* GraphQL */ `
         accessToken
         expiresAt
       }
-      userErrors {
+      customerUserErrors {
         field
         message
       }
@@ -34,7 +34,7 @@ export const createAccessTokenMutation = /* GraphQL */ `
 export const customerRecoverMutation = /* GraphQL */ `
   mutation customerRecover($email: String!) {
     customerRecover(email: $email) {
-      userErrors {
+      customerUserErrors {
         field
         message
       }

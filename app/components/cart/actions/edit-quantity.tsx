@@ -3,6 +3,7 @@ import clsx from "clsx";
 import type { CartItem } from "@/lib/shopify/types";
 import { useFetcher } from "@remix-run/react";
 import { Button } from "@/components/ui/button";
+import { useCartStore } from "@/store/cart";
 
 function SubmitButton({ type }: { type: "plus" | "minus" }) {
   return (
@@ -37,9 +38,14 @@ export function EditQuantityButton({
     merchandiseId: item.merchandise.id,
     quantity: type === "plus" ? item.quantity + 1 : item.quantity - 1,
   };
+  const { updateLine } = useCartStore();
 
   return (
-    <fetcher.Form method="post" action="/api/cart/edit">
+    <fetcher.Form
+      onSubmit={() => updateLine(item.id!, payload.quantity)}
+      method="post"
+      action="/api/cart/edit"
+    >
       <input type="hidden" name="merchandiseId" value={payload.merchandiseId} />
       <input type="hidden" name="quantity" value={payload.quantity} />
       <SubmitButton type={type} />

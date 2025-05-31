@@ -7,7 +7,10 @@ export const loader: LoaderFunction = async ({ request }) => {
   const req = await getCustomerInfo(request);
 
   if (!req.success) {
-    throw new Response("Failed to load customer info", { status: 500 });
+    throw new Response(req.error, {
+      status: 500,
+      statusText: "Failed to load customer info",
+    });
   }
   const customer = req.result;
 
@@ -16,7 +19,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function AccountPage() {
   const { customer } = useLoaderData<typeof loader>();
-  console.log(customer);
 
   const shortId = customer.id.split("/").pop();
 

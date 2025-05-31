@@ -7,14 +7,20 @@ export const action: ActionFunction = async ({ request }) => {
   const quantity = Number(formData.get("quantity"));
 
   if (typeof merchandiseId !== "string" || isNaN(quantity)) {
-    return data({ success: false, error: "Invalid input" }, { status: 400 });
+    throw new Response("Invalid Input", {
+      status: 400,
+      statusText: "Invalid Input at editCart",
+    });
   }
 
   try {
     const cartReq = await getCart(request);
 
     if (!cartReq.success) {
-      return { success: false, error: "editCartItem: error fetching cart " };
+      throw new Response(cartReq.error, {
+        status: 400,
+        statusText: "editCartItem: error fetching cart ",
+      });
     }
     const cart = cartReq.result;
 
@@ -26,9 +32,14 @@ export const action: ActionFunction = async ({ request }) => {
       if (quantity === 0) {
         const req = await removeFromCart(request, [lineItem.id]);
 
-        return req.success
-          ? { success: true, result: req.result }
-          : { success: false, error: "editCartItem: error removing item" };
+        if (req.success) {
+          return { success: true, result: req.result };
+        } else {
+          throw new Response(req.error, {
+            status: 400,
+            statusText: "editCartItem: error removing item",
+          });
+        }
       } else {
         const req = await updateCart(request, [
           {
@@ -37,13 +48,21 @@ export const action: ActionFunction = async ({ request }) => {
             quantity,
           },
         ]);
-        return req.success
-          ? { success: true, result: req.result }
-          : { success: false, error: "editCartItem: error removing item" };
+        if (req.success) {
+          return { success: true, result: req.result };
+        } else {
+          throw new Response(req.error, {
+            status: 400,
+            statusText: "editCartItem: error updating item",
+          });
+        }
       }
     }
-  } catch (e) {
-    console.error(e);
-    return { success: false, error: e };
+  } catch (error) {
+    console.error(error);
+    throw new Response("Unknown error, check console", {
+      status: 400,
+      statusText: "Unexpected error",
+    });
   }
 };

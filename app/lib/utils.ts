@@ -3,20 +3,36 @@ import { twMerge } from "tailwind-merge";
 import { EnvVariables } from "./constants";
 import { useSearchParams, useNavigate, useLocation } from "@remix-run/react";
 import { ProductFilter, ShopifyFilter } from "./shopify/types";
+import { createLogger } from "./logger";
+
+const logger = createLogger("UTILS");
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+// Utility to check if code is running in hte browser
+
 export function isBrowser() {
   return typeof window !== "undefined";
 }
+
+// Returns env variables from server or browser
+
 export function getEnv() {
   return isBrowser() ? window.ENV : process.env;
 }
+
+// Initialize env variables
 const env = getEnv();
+
+// Base URL depending on working environment
+
 export const baseUrl = env.STORE_PRODUCTION_URL
   ? `https://${env.STORE_PRODUCTION_URL}`
   : "http://localhost:5173";
+
+// Create url from pathname and query parameters
 
 export const createUrl = (pathname: string, params: URLSearchParams) => {
   const paramsString = params.toString();
@@ -24,6 +40,8 @@ export const createUrl = (pathname: string, params: URLSearchParams) => {
 
   return `${pathname}${queryString}`;
 };
+
+// Validates required env variables and throws error if there are any missing
 
 export const validateEnvironmentVariables = () => {
   const requiredEnvironmentVariables = [
@@ -47,6 +65,8 @@ export const validateEnvironmentVariables = () => {
   }
 };
 
+// Hook to update filter parameters while preserving others, also removes pagination related paramaters
+
 export function useUpdateParams() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -67,6 +87,13 @@ export function useUpdateParams() {
     navigate(`?${params.toString()}`);
   };
 }
+
+/**
+ * @deprecated This function is no longer used since we switched from
+ * using the `query` argument to the `filters` argument in the Shopify collection GraphQL queries.
+ *
+ * Formats filters into a Shopify-compatible query string for legacy usage.
+ */
 export function apiFormatter({
   priceRange,
   brands,
@@ -104,6 +131,8 @@ export function apiFormatter({
   return filters.join(" AND ");
 }
 
+// Parse product filters from search parameters into a shopify compatible array
+
 export function parseFilters(
   params: URLSearchParams,
   filters: ShopifyFilter[]
@@ -138,7 +167,7 @@ export function parseFilters(
           const parsed = JSON.parse(value.input);
           productFilters.push(parsed);
         } catch (error) {
-          console.error(`Invalid JSON in filter input: ${value.input}`, error);
+          logger.error(`Invalid JSON in filter input: ${value.input}`);
         }
       }
     }
@@ -146,6 +175,11 @@ export function parseFilters(
 
   return productFilters;
 }
+
+/**
+ * Returns a breadcrumb-style string based on the current URL path.
+ * e.g. `/products/:product` -> "Home / Products / ${product}"
+ */
 
 export function useBreadcrumb() {
   const location = useLocation();

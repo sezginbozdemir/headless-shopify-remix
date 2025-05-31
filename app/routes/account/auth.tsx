@@ -4,12 +4,13 @@ import { Separator } from "@/components/ui/separator";
 import {
   createAccessToken,
   createCustomer,
+  getShopInfo,
   recoverCustomer,
 } from "@/lib/shopify";
 import { AccessTokenFormData, CustomerFormData } from "@/lib/shopify/types";
-import { ActionFunction, data, redirect } from "@remix-run/node";
+import { ActionFunction, redirect } from "@remix-run/node";
 import { LoaderFunction, type MetaFunction } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useActionData, useLoaderData } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
   return [
@@ -27,13 +28,18 @@ export const action: ActionFunction = async ({ request }) => {
     const email = formData.get("email") as string;
 
     const result = await recoverCustomer(email);
-    console.log(result);
 
     if (result.success) {
       return redirect("/account/auth?mode=login");
     }
+    if (result.error.startsWith("userErrors:")) {
+      return { userError: result.error.replace("userErrors:", "").trim() };
+    }
 
-    return data({ error: result.error }, { status: 400 });
+    throw new Response(result.error, {
+      status: 400,
+      statusText: "Failed to recover customer, please try again later.",
+    });
   }
 
   if (mode === "signup") {
@@ -51,8 +57,14 @@ export const action: ActionFunction = async ({ request }) => {
     if (result.success) {
       return redirect("/account/auth?mode=login");
     }
+    if (result.error.startsWith("userErrors:")) {
+      return { userError: result.error.replace("userErrors:", "").trim() };
+    }
 
-    return data({ error: result.error }, { status: 400 });
+    throw new Response(result.error, {
+      status: 400,
+      statusText: "Failed to create customer please try again later",
+    });
   }
 
   const authData: AccessTokenFormData = {
@@ -65,19 +77,36 @@ export const action: ActionFunction = async ({ request }) => {
   if (res.success) {
     return redirect("/account", { headers: res.result });
   }
+  if (res.error.startsWith("userErrors:")) {
+    return { userError: res.error.replace("userErrors:", "").trim() };
+  }
 
-  return data({ error: res.error }, { status: 400 });
+  throw new Response(res.error, {
+    status: 400,
+    statusText: "Failed to log in, please try again later.",
+  });
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url);
   const mode = url.searchParams.get("mode") ?? "login";
+  const shopReq = await getShopInfo();
+  if (!shopReq.success) {
+    throw new Response(shopReq.error, {
+      status: 500,
+      statusText: " failed to fetch shop info, please try again later",
+    });
+  }
+  const shop = shopReq.result;
 
-  return { mode };
+  const img = shop.brand.coverImage.image;
+
+  return { mode, img };
 };
 
 export default function AccountAuthPage() {
-  const { mode } = useLoaderData<typeof loader>();
+  const { mode, img } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
   const title =
     mode === "recover"
       ? "Reset password"
@@ -90,7 +119,7 @@ export default function AccountAuthPage() {
       <Spacing size={2} />
       <Separator />
       <Spacing size={2} />
-      <AuthForm mode={mode} />
+      <AuthForm userError={actionData?.userError} img={img} mode={mode} />
     </>
   );
 }

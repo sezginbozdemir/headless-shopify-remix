@@ -7,13 +7,16 @@ export const action: ActionFunction = async ({ request }) => {
   const quantity = Number(formData.get("quantity"));
 
   if (typeof merchandiseId !== "string" || isNaN(quantity)) {
-    return data({ success: false, error: "Invalid input" }, { status: 400 });
+    throw data({ success: false, error: "Invalid input" }, { status: 400 });
   }
 
   const res = await addToCart(request, [{ merchandiseId, quantity: quantity }]);
 
   if (!res.success) {
-    return data({ success: false, error: res.error }, { status: 500 });
+    throw new Response(res.error, {
+      status: 500,
+      statusText: "Error adding to cart",
+    });
   }
 
   return data(

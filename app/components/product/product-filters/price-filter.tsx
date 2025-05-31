@@ -10,7 +10,6 @@ interface Props {
 
 export function PriceFilter({ filter }: Props) {
   const [searchParams, setSearchParams] = useSearchParams();
-  console.log(filter);
   const values = filter?.values?.[0];
 
   const inputObj = values?.input ? JSON.parse(values.input) : null;

@@ -1,4 +1,4 @@
-import { data, type LoaderFunction, type MetaFunction } from "@remix-run/node";
+import { type LoaderFunction, type MetaFunction } from "@remix-run/node";
 import {
   getCollectionProducts,
   getCollections,
@@ -42,7 +42,10 @@ export const loader: LoaderFunction = async ({ request }) => {
     reverse,
   });
   if (!productsReq.success) {
-    throw data({ error: productsReq.error }, { status: 500 });
+    throw new Response(productsReq.error, {
+      status: 500,
+      statusText: "Failed to fetch products, please try again later.",
+    });
   }
   const products = productsReq.result;
 

@@ -5,6 +5,7 @@ declare global {
       SHOPIFY_ACCESS_TOKEN: string;
       SHOPIFY_STORE_DOMAIN: string;
       API_VERSION: string;
+      NODE_ENV: string;
     };
   }
 }

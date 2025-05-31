@@ -5,35 +5,31 @@ import { Separator } from "../ui/separator";
 import { CartLineSheet } from "./cart-line-sheet";
 
 interface Props {
-  cart: Cart | "NO_CART";
+  cart: Cart | null;
   sheet?: boolean;
 }
 
 export function CartList({ cart, sheet }: Props) {
-  const emptyCart = cart === "NO_CART" || cart.lines.length === 0;
+  const emptyCart = !cart || cart.lines.length === 0;
+
+  if (emptyCart) {
+    return (
+      <p className="text-center text-gray-600 text-lg py-12">
+        Your cart is empty.
+      </p>
+    );
+  }
 
   return (
     <>
-      {emptyCart ? (
-        <p className="text-center text-gray-600 text-lg py-12">
-          Your cart is empty.
-        </p>
-      ) : (
-        <>
-          {cart.lines.map((line) => (
-            <>
-              {sheet ? (
-                <CartLineSheet key={line.id} line={line} />
-              ) : (
-                <CartLine key={line.id} line={line} />
-              )}
-              <Spacing size={2} />
-              <Separator />
-              <Spacing size={2} />
-            </>
-          ))}
-        </>
-      )}
+      {cart.lines.map((line) => (
+        <div key={line.id}>
+          {sheet ? <CartLineSheet line={line} /> : <CartLine line={line} />}
+          <Spacing size={2} />
+          <Separator />
+          <Spacing size={2} />
+        </div>
+      ))}
     </>
   );
 }

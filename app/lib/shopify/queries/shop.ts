@@ -5,6 +5,13 @@ export const getShopQuery = /* GraphQL */ `
     shop {
       name
       brand {
+        shortDescription
+        slogan
+        coverImage {
+          image {
+            ...image
+          }
+        }
         colors {
           primary {
             background

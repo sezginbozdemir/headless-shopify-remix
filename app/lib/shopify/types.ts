@@ -1,3 +1,5 @@
+import { Image } from "lucide-react";
+
 export type Connection<T> = {
   edges: Array<Edge<T>>;
 };
@@ -10,7 +12,6 @@ export type Image = {
   altText: string;
   url: string;
 };
-
 export type ShopifyCollection = {
   title: string;
   id: string;
@@ -70,6 +71,7 @@ export type Product = Omit<
 
 export type ShopifyProduct = {
   id: string;
+  handle: string;
   title: string;
   vendor: string;
   totalInventory: number;
@@ -140,7 +142,7 @@ export type ProductFilter =
 
 export type Menu = {
   title: string;
-  path: string;
+  url: string;
 };
 export type ShopifyCart = {
   id: string | undefined;
@@ -163,6 +165,7 @@ export type CartItem = {
   quantity: number;
   cost: {
     totalAmount: Money;
+    amountPerQuantity: Money;
   };
   merchandise: {
     id: string;
@@ -228,7 +231,7 @@ export type AccessTokenResponse = {
       accessToken: string;
       expiresAt: string;
     };
-    userErrors: {
+    customerUserErrors: {
       field: string[];
       message: string;
     }[];
@@ -255,7 +258,9 @@ type ShopifyOrder = {
   currentTotalTax: Money;
   customerUrl: string;
   financialStatus: string;
+  fulfillmentStatus: string;
   orderNumber: string;
+  shippingAddress: Address;
   lineItems: Connection<OrderLineItems>;
   processedAt: Date;
 };
@@ -275,6 +280,11 @@ export type ShopifyCustomer = {
 export type ShopInfo = {
   name: string;
   brand: {
+    coverImage: {
+      image: Image;
+    };
+    shortDescription: string;
+    slogan: string;
     colors: {
       primary: {
         background: string;
@@ -297,4 +307,18 @@ export type ShopInfo = {
 export type Customer = Omit<ShopifyCustomer, "addresses" | "orders"> & {
   addresses: Address[] | [];
   orders: Order[] | [];
+};
+
+export type Metaobject = {
+  type: string;
+  handle: string;
+  fields: {
+    reference: {
+      id: string;
+      image: Image;
+    };
+    key: string;
+    type: string;
+    value: string;
+  }[];
 };

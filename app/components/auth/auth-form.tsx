@@ -1,11 +1,15 @@
 import { Form, useNavigate } from "@remix-run/react";
 import { FormField } from "./form-field";
 import { Button } from "../ui/button";
+import { Image } from "@/lib/shopify/types";
+import { AlertCircle } from "lucide-react";
 interface Props {
   mode: string;
+  img: Image;
+  userError: string | undefined;
 }
 
-export function AuthForm({ mode }: Props) {
+export function AuthForm({ mode, img, userError }: Props) {
   const signupFields = [
     { name: "firstName", placeholder: "First Name", type: "text" },
     { name: "lastName", placeholder: "Last Name", type: "text" },
@@ -48,13 +52,19 @@ export function AuthForm({ mode }: Props) {
     <div className="flex justify-between items-start">
       <div className="h-full flex-1 overflow-hidden rounded-md">
         <img
-          src="/account.jpg"
+          src={img.url}
           className="w-full h-full object-cover"
           alt="login/signup"
         />
       </div>
 
       <div className="w-full flex flex-col flex-1 items-start  px-[5rem] ">
+        {userError && (
+          <div className="w-full mb-4 p-4 bg-red-100 text-red-700 border border-red-300 rounded-md flex items-center justify-between gap-2">
+            <span>{userError}</span>
+            <AlertCircle className="w-7 h-7 text-red-600" />
+          </div>
+        )}
         <Form method="post" className="w-full">
           {(mode === "signup"
             ? signupFields

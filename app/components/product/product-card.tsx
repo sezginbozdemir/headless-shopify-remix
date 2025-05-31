@@ -3,14 +3,14 @@ import { Product } from "@/lib/shopify/types";
 import { getSaleInfo } from "@/lib/shopify/utils";
 import { AddToCart } from "../cart/actions/add-to-cart";
 import { Badge } from "../ui/badge";
-import { useState } from "react";
+import { useNavigate } from "@remix-run/react";
 
 type ProductCardProps = {
   product: Product;
 };
 
 export function ProductCard({ product }: ProductCardProps) {
-  const primaryImage = product.images[0]?.url;
+  const primaryImage = product.featuredImage.url;
   const price = product.variants[0]?.price.amount || 0;
   const oldPrice = product.variants[0]?.compareAtPrice?.amount;
   const createdAt = new Date(product.createdAt);
@@ -20,8 +20,15 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const isNew = createdAt > fourteenDaysAgo;
   const { isOnSale, discount } = getSaleInfo(product);
+
+  const navigate = useNavigate();
+  const variant =
+    product.variants.length === 1 ? product.variants[0] : undefined;
   return (
-    <Card className="group relative rounded-[15px] hover:rounded-[25px] w-full  h-[35rem] flex flex-col justify-between transition-all hover:shadow-lg">
+    <Card
+      onClick={() => navigate(`/products/${product.handle}`)}
+      className="cursor-pointer group relative rounded-[15px] hover:rounded-[25px] w-full  h-[30rem] flex flex-col justify-between transition-all hover:shadow-lg"
+    >
       <div className="p-5 flex items-center gap-2">
         {isOnSale && <Badge className="w-[80px] h-[40px]">{discount}%</Badge>}
         {isNew && <Badge className="w-[80px] h-[40px]">NEW</Badge>}
@@ -34,7 +41,7 @@ export function ProductCard({ product }: ProductCardProps) {
         />
       </CardHeader>
       <div className="w-[180px] self-center m-5 transition-all invisible group-hover:visible group-hover:animate-in group-hover:slide-in-from-bottom">
-        <AddToCart product={product} />
+        <AddToCart quantity={1} selectedVariant={variant} />
       </div>
 
       <CardContent className="flex flex-col justify-between gap-3">

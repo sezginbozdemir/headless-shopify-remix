@@ -7,15 +7,25 @@ import {
   DollarSign,
 } from "lucide-react";
 import { getCustomerInfo } from "@/lib/shopify";
-import { data, LoaderFunction } from "@remix-run/node";
+import { LoaderFunction, MetaFunction } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { Order } from "@/lib/shopify/types";
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: "New Remix App" },
+    { name: "description", content: "Welcome to Remix!" },
+  ];
+};
 
 export const loader: LoaderFunction = async ({ request }) => {
   const req = await getCustomerInfo(request);
 
   if (!req.success) {
-    return data({ error: req.error }, { status: 500 });
+    throw new Response(req.error, {
+      status: 500,
+      statusText: "Failed to fetch customer, please try again later",
+    });
   }
 
   const orders = req.result.orders || [];

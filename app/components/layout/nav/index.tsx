@@ -9,9 +9,17 @@ interface Props {
   shop: ShopInfo;
   collections: Collection[];
   openCart: () => void;
+  isCustomer: boolean;
+  cartQuantity: number;
 }
 
-export default function Nav({ shop, collections, openCart }: Props) {
+export default function Nav({
+  shop,
+  collections,
+  openCart,
+  isCustomer,
+  cartQuantity,
+}: Props) {
   return (
     <div className="bg-white py-6 shadow-md">
       <div className="flex flex-col gap-6">
@@ -35,7 +43,7 @@ export default function Nav({ shop, collections, openCart }: Props) {
               >
                 <User size={25} />
                 <h2 className="relative">
-                  Sign in
+                  {!isCustomer ? "Sign in / Register" : "My Account"}
                   <span className="absolute left-0 bottom-0 h-[2px] w-0 bg-foreground transition-all duration-300 group-hover:w-full" />
                 </h2>
               </Link>
@@ -45,7 +53,7 @@ export default function Nav({ shop, collections, openCart }: Props) {
               >
                 <ShoppingBag size={25} />
                 <h2 className="relative">
-                  Cart
+                  Cart ({cartQuantity})
                   <span className="absolute left-0 bottom-0 h-[2px] w-0 bg-foreground transition-all duration-300 group-hover:w-full" />
                 </h2>
               </button>
