@@ -6,6 +6,7 @@ import { Spacing } from "@/components/spacing";
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "@remix-run/react";
 import { ProductsResult, ShopifyFilter } from "@/lib/shopify/types";
+import clsx from "clsx";
 
 type ProductLayoutProps = {
   productsData: ProductsResult;
@@ -52,20 +53,19 @@ export function ProductLayout({
         search={search}
       />
       <Spacing size={1} />
-      <div className="flex w-full relative justify-between gap-[10px]">
+      <div className="relative flex flex-col md:flex-row w-full justify-between gap-[10px]">
         {(filtersOpen || isAnimating) && (
           <div
             ref={filterRef}
-            className={`
-              min-w-[300px]
-              animate-duration-300
-              animate-ease-in-out
-              ${
-                filtersOpen
-                  ? "animate-in slide-in-from-left"
-                  : "animate-out slide-out-to-left"
-              }
-            `}
+            className={clsx(
+              "w-full md:min-w-[300px] md:max-w-[350px]",
+              "animate-duration-300",
+              "animate-ease-in-out",
+              "bg-white z-10",
+              filtersOpen
+                ? "animate-in slide-in-from-left"
+                : "animate-out slide-out-to-left",
+            )}
           >
             <ProductFilters filters={filters} />
           </div>

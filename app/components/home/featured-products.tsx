@@ -35,9 +35,9 @@ export function FeaturedProducts({ products }: Props) {
         </Button>
       </div>
       <Spacing size={1} />
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col lg:flex-row gap-4">
         {/* Left Column - Manual Product Card */}
-        <Card className="w-full md:w-1/2 cursor-pointer group relative rounded-[15px] hover:rounded-[25px] flex flex-col justify-between transition-all hover:shadow-lg overflow-hidden p-8">
+        <Card className="w-full lg:w-1/2 cursor-pointer group relative rounded-[15px] hover:rounded-[25px] flex flex-col justify-between transition-all hover:shadow-lg overflow-hidden p-8">
           <Carousel>
             <CarouselContent>
               {mainProduct.images.map((img, idx) => (
@@ -57,7 +57,6 @@ export function FeaturedProducts({ products }: Props) {
             <CarouselPrevious />
             <CarouselNext />
           </Carousel>
-          <div></div>
           <div>
             <div className="flex justify-between items-center mb-2 text-xl">
               <h3 className="font-semibold">{mainProduct.title}</h3>
@@ -73,7 +72,7 @@ export function FeaturedProducts({ products }: Props) {
         </Card>
 
         {/* Right Column - Grid of 4 ProductCards */}
-        <div className="w-full md:w-1/2 grid grid-cols-2 gap-4">
+        <div className="w-full lg:w-1/2 grid sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-2 grid-cols-1 gap-4">
           {gridProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

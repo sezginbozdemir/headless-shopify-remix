@@ -11,7 +11,7 @@ export function CartLineSheet({ line }: Props) {
   const product: CartProduct = line.merchandise.product;
 
   return (
-    <div className="flex items-start gap-4">
+    <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
       <Link
         to={`/products/${product.handle}`}
         className="w-[100px] h-[100px] mt-4 border rounded-xl overflow-hidden"
@@ -22,7 +22,7 @@ export function CartLineSheet({ line }: Props) {
           className="w-full h-full object-contain"
         />
       </Link>
-      <div className="flex justify-between flex-1">
+      <div className="flex justify-between flex-1 flex-wrap">
         <div className="flex flex-col gap-12 justify-between">
           <div className="flex flex-col justify-between gap-4">
             <h2 className="text-2xl font-medium">{product.title}</h2>

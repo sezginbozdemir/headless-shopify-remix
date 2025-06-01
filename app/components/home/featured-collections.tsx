@@ -11,7 +11,7 @@ export function FeaturedCollections({ collections }: Props) {
   if (featured.length < 5) return null;
 
   return (
-    <div className="flex gap-4 h-[600px]">
+    <div className="flex flex-col md:flex-row gap-4 h-[600px]">
       {/* Left big item */}
       <Link
         to={`/products?collection=${featured[0].handle}`}

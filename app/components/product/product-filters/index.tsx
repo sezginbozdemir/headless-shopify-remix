@@ -22,7 +22,7 @@ export function ProductFilters({ filters }: Props) {
   const updateParams = useUpdateParams();
 
   return (
-    <div className="flex gap-2 h-[100vh]  sticky top-0">
+    <div className="flex gap-2 md:h-[100vh]  sticky top-0">
       <div className="py-[1rem] w-full h-full">
         <Accordion type="single" collapsible className="w-full">
           {filters.map((filter, index) => (

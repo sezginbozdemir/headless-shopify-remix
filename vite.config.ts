@@ -10,8 +10,7 @@ declare module "@remix-run/node" {
 
 export default defineConfig({
   server: {
-    host: true,
-    allowedHosts: ["modification-cord-bathroom-binary.trycloudflare.com"],
+    host: "0.0.0.0",
   },
   plugins: [
     remix({

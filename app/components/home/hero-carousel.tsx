@@ -39,7 +39,7 @@ export function HeroCarousel({ metaobjects }: Props) {
         opts={{ loop: true }}
         plugins={[Autoplay({ delay: 4000 })]}
       >
-        <CarouselContent className="h-[500px]">
+        <CarouselContent className="h-[600px] md:h-[500px] ">
           {metaobjects.map((metaobject) => {
             const imageField = metaobject.fields.find((f) => f.key === "image");
             const titleField = metaobject.fields.find((f) => f.key === "title");
@@ -60,7 +60,7 @@ export function HeroCarousel({ metaobjects }: Props) {
                   />
 
                   {/* Text content in normal flow */}
-                  <div className="z-10 w-1/2 h-full flex flex-col items-start justify-center p-20 gap-8">
+                  <div className="z-10 w-full md:w-1/2 h-full flex flex-col items-start justify-center p-20 gap-8">
                     <h1 className="text-6xl bg-black/1 backdrop-blur-xs rounded-xl">
                       {title}
                     </h1>

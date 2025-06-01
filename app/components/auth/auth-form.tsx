@@ -49,7 +49,7 @@ export function AuthForm({ mode, img, userError }: Props) {
   };
 
   return (
-    <div className="flex justify-between items-start">
+    <div className="flex flex-col md:flex-row gap-5 md:gap-0 justify-between items-start">
       <div className="h-full flex-1 overflow-hidden rounded-md">
         <img
           src={img.url}
@@ -58,7 +58,7 @@ export function AuthForm({ mode, img, userError }: Props) {
         />
       </div>
 
-      <div className="w-full flex flex-col flex-1 items-start  px-[5rem] ">
+      <div className="w-full flex flex-col flex-1 items-start  md:px-[5rem] ">
         {userError && (
           <div className="w-full mb-4 p-4 bg-red-100 text-red-700 border border-red-300 rounded-md flex items-center justify-between gap-2">
             <span>{userError}</span>

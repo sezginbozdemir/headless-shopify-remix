@@ -22,7 +22,7 @@ export function SearchInput({ collections }: Props) {
   const isActive = hovered || dropdownOpen;
   return (
     <Form method="post" action="/search">
-      <div className="relative w-[35rem] h-[45px]">
+      <div className="relative h-[45px]">
         <div
           className={`absolute left-[1px] top-1/2 -translate-y-1/2 cursor-pointer w-[160px] h-[95%] hover:bg-white rounded-full flex items-center justify-center ${
             isActive ? `bg-white` : ``
