@@ -11,7 +11,7 @@ interface Props {
 export function AddressCard({ address, onClick, defaultAddress }: Props) {
   return (
     <div className="border rounded-2xl p-4 shadow-sm">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-center">
         <div>
           <p className="text-lg font-medium">
             {address.address1}

@@ -115,7 +115,7 @@ export default function AccountAuthPage() {
       : "Register account";
   return (
     <>
-      <h1 className="text-6xl font-[500]">{title}</h1>
+      <h1 className="text-4xl md:text-6xl font-[500]">{title}</h1>
       <Spacing size={2} />
       <Separator />
       <Spacing size={2} />

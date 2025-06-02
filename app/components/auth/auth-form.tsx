@@ -88,9 +88,7 @@ export function AuthForm({ mode, img, userError }: Props) {
             onClick={toggleMode}
             className="mt-4 p-0 text-md"
           >
-            {mode === "login"
-              ? "Don't have an account? Sign up"
-              : "Already have an account? Log in"}
+            {mode === "login" ? "Sign up" : "Log in"}
           </Button>
           <Button
             variant="link"

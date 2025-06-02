@@ -60,8 +60,8 @@ export function HeroCarousel({ metaobjects }: Props) {
                   />
 
                   {/* Text content in normal flow */}
-                  <div className="z-10 w-full md:w-1/2 h-full flex flex-col items-start justify-center p-20 gap-8">
-                    <h1 className="text-6xl bg-black/1 backdrop-blur-xs rounded-xl">
+                  <div className="z-10 w-full md:w-1/2 h-full flex flex-col items-start justify-center p-10 md:p-20 gap-8">
+                    <h1 className="text-4xl md:text-6xl bg-black/1 backdrop-blur-xs rounded-xl">
                       {title}
                     </h1>
                     <div className="flex gap-5 justify-between">

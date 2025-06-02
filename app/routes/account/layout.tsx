@@ -29,24 +29,26 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function AccountLayout() {
   return (
-    <div className="flex">
-      <div className="flex flex-col gap-5 w-[300px] items-start">
-        <Link className="w-full" to="/account">
-          <Button className="h-[4rem] w-full">Account</Button>
+    <div className="flex flex-col md:flex-row gap-6 p-4">
+      {/* Sidebar */}
+      <div className="flex flex-col gap-4 w-full md:w-[250px] shrink-0">
+        <Link to="/account">
+          <Button className="w-full h-16">Account</Button>
         </Link>
-
-        <Link className="w-full" to="/account/orders">
-          <Button className="h-[4rem] w-full">Order History</Button>
+        <Link to="/account/orders">
+          <Button className="w-full h-16">Order History</Button>
         </Link>
-        <Link className="w-full" to="/account/addresses">
-          <Button className="h-[4rem] w-full">Addresses</Button>
+        <Link to="/account/addresses">
+          <Button className="w-full h-16">Addresses</Button>
         </Link>
         <Form method="post">
-          <Button type="submit" variant="link">
+          <Button type="submit" variant="link" className="pl-0">
             Logout
           </Button>
         </Form>
       </div>
+
+      {/* Main content */}
       <div className="flex-1">
         <Outlet />
       </div>

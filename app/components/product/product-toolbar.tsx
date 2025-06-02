@@ -84,7 +84,7 @@ export function ProductToolbar({ onToggleFilters, sortValue, search }: Props) {
         <Button
           variant="ghost"
           onClick={onToggleFilters}
-          className="text-2xl font-[500]"
+          className="text-xl md:text-2xl font-[500]"
         >
           Filters
           <ListFilterPlus size={30} />
@@ -117,9 +117,9 @@ export function ProductToolbar({ onToggleFilters, sortValue, search }: Props) {
         </div>
 
         <div className="flex gap-2 items-center">
-          <h2 className="text-2xl font-[500]">Sort by:</h2>
+          <h2 className="text-xl md:text-2xl font-[500]">Sort by:</h2>
           <Select value={sortValue} onValueChange={(e) => updateSortParam(e)}>
-            <SelectTrigger className="w-[200px] h-[40px] text-lg font-[400] font-heading">
+            <SelectTrigger className="w-[150px] md:w-[200px] h-[40px] text-lg font-[400] font-heading">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>

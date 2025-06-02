@@ -40,7 +40,7 @@ export default function CartPage() {
     loaderCart === "NO_CART" || cart?.lines.length === 0 || cart === null;
   return (
     <>
-      <h1 className="text-6xl font-[500]">Your Cart</h1>
+      <h1 className="text-4xl md:text-6xl font-[500]">Your Cart</h1>
       <Spacing size={2} />
       <Separator />
       <Spacing size={2} />

@@ -164,7 +164,9 @@ export function MobileMenuSheet({
               {filteredCollections.map((col) => (
                 <li key={col.id}>
                   <Button variant="link" onClick={handleClose}>
-                    <Link to={`/collections/${col.handle}`}>{col.title}</Link>
+                    <Link to={`/products?collection=${col.handle}`}>
+                      {col.title}
+                    </Link>
                   </Button>
                 </li>
               ))}

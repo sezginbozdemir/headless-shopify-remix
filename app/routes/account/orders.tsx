@@ -45,7 +45,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="px-8">
+    <div className="md:px-8">
       <h2 className="text-2xl font-semibold mb-6">Your Orders</h2>
 
       <div className="space-y-6 flex flex-col">

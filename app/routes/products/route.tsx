@@ -60,16 +60,21 @@ export default function ProductsPage() {
   const { collections, products, collectionKey } =
     useLoaderData<typeof loader>();
   const collection = collections.find(
-    (item: Collection) => item.handle === collectionKey
+    (item: Collection) => item.handle === collectionKey,
   );
   const title = collection?.title || "Products";
   const desc = collection?.description || "";
 
   return (
     <>
-      <div className="flex gap-5 items-center">
-        <h1 className="text-6xl font-[500]">{title}</h1>
-        {desc && <Separator className="h-[30px]" orientation="vertical" />}
+      <div className="flex flex-col md:flex-row gap-5 items-start md:items-center">
+        <h1 className="text-4xl md:text-6xl font-[500]">{title}</h1>
+        {desc && (
+          <Separator
+            className="hidden md:block h-[30px]"
+            orientation="vertical"
+          />
+        )}
         <h5 className="text-xl text-gray-600">{desc}</h5>
       </div>
       <Spacing size={2} />

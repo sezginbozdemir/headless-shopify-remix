@@ -96,7 +96,7 @@ export default function RootLayout({
   }, [showStickyNav]);
   const breadcrumb = useBreadcrumb();
   const announcementsArray = JSON.parse(announcements[0].fields[0].value);
-  const cartTotalQuantity = cart?.totalQuantity;
+  const cartTotalQuantity = cart?.totalQuantity || 0;
 
   return (
     <>

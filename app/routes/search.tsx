@@ -79,11 +79,14 @@ export default function SearchPage() {
   const { search, filters, count, query } = useLoaderData<typeof loader>();
   return (
     <>
-      <div className="flex gap-5 items-center mt-4">
-        <h1 className="text-6xl font-[500]">{`Results for "${query}"`}</h1>
+      <div className="flex flex-col md:flex-row gap-5 items-start md:items-center mt-4">
+        <h1 className="text-4xl md:text-6xl font-[500]">{`Results for "${query}"`}</h1>
         {count !== undefined && (
           <>
-            <Separator className="h-[30px]" orientation="vertical" />
+            <Separator
+              className="hidden md:block h-[30px]"
+              orientation="vertical"
+            />
             <h5 className="text-xl text-gray-600">
               {count} item{count !== 1 && "s"} found
             </h5>

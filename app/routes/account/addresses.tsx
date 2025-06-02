@@ -114,7 +114,7 @@ export default function AddressesPage() {
   }
 
   return (
-    <div className="px-8">
+    <div className="md:px-8">
       <AddressDialog
         onClose={onClose}
         open={open}
@@ -123,7 +123,9 @@ export default function AddressesPage() {
       />
 
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">Your Default Address</h2>
+        <h2 className="text-xl md:text-2xl font-semibold">
+          Your Default Address
+        </h2>
         <Button variant="link" onClick={onAddClick}>
           <Plus />
           Add Address
@@ -139,7 +141,7 @@ export default function AddressesPage() {
 
       {moreThanOneAddress && (
         <div className="space-y-4 mt-8">
-          <h2 className="text-2xl font-semibold">Your Addresses</h2>
+          <h2 className="text-xl md:text-2xl font-semibold">Your Addresses</h2>
           {customer.addresses
             .filter((a: Address) => a.id !== customer.defaultAddress.id)
             .map((address: Address, index: number) => (
