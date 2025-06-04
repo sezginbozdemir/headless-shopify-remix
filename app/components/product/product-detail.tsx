@@ -6,6 +6,13 @@ import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { AddToCart } from "@/components/cart/actions/add-to-cart";
 import { QuantitySelector } from "@/components/product/quantity-selector";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "../ui/carousel";
 
 export default function ProductDetail({ product }: { product: Product }) {
   const variant = product.variants?.[0];
@@ -43,13 +50,13 @@ export default function ProductDetail({ product }: { product: Product }) {
 
   const isOptionSelected = (optionName: string, value: string) =>
     selectedOptions.some(
-      (opt) => opt.name === optionName && opt.value === value
+      (opt) => opt.name === optionName && opt.value === value,
     );
   const selectedVariant = product.variants.find((variant) => {
     return variant.selectedOptions.every((option) =>
       selectedOptions.some(
-        (sel) => sel.name === option.name && sel.value === option.value
-      )
+        (sel) => sel.name === option.name && sel.value === option.value,
+      ),
     );
   });
 
@@ -66,8 +73,11 @@ export default function ProductDetail({ product }: { product: Product }) {
   }, [selectedVariant, product.images]);
 
   return (
-    <div className="flex gap-8 relative">
-      <div ref={imageContainerRef} className="flex flex-col gap-5 flex-1">
+    <div className="flex flex-col lg:flex-row gap-8 relative">
+      <div
+        ref={imageContainerRef}
+        className="hidden lg:flex flex-col gap-5 flex-1"
+      >
         {displayImages.map((img, idx) => (
           <img
             key={idx}
@@ -77,8 +87,23 @@ export default function ProductDetail({ product }: { product: Product }) {
           />
         ))}
       </div>
+      <Carousel className="lg:hidden">
+        <CarouselContent>
+          {displayImages.map((img, idx) => (
+            <CarouselItem key={idx}>
+              <img
+                src={img.url}
+                alt={img.altText}
+                className="w-full h-[600px] rounded-xl object-contain border shadow-sm"
+              />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselNext />
+        <CarouselPrevious />
+      </Carousel>
 
-      <div className="w-[50%] sticky top-10 self-start">
+      <div className="w-full lg:w-[50%] sticky top-10 self-start">
         <div className="flex justify-between items-center">
           {collectionInfo.length > 0 && (
             <p className="text-gray-500 text-md uppercase hover:opacity-[0.8]">
